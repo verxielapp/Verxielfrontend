@@ -1,0 +1,158 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobil ve responsive için temel stiller */
+@media (max-width: 700px) {
+  body, html, #root {
+    width: 100vw;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .app-flex {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .app-sidebar, .app-profile { width: 100% !important; min-width: 0 !important; border: none !important; }
+  .app-sidebar { border-bottom: 1px solid #ccc !important; }
+  .app-profile { border-top: 1px solid #ccc !important; }
+  .chat-main { max-width: 100vw !important; min-width: 0 !important; margin: 0 !important; border-radius: 0 !important; }
+}
+
+:root {
+  --main-purple: #a259e6;
+  --main-purple-dark: #6d2db7;
+  --main-bg: #f7f5ff;
+  --main-bg-dark: #3a3a3a;
+  --main-light: #e6d6ff;
+  --main-green: #a259e6; /* mor tonunu ana renk yapıyoruz */
+  --main-red: #ff4d4f;
+}
+
+body {
+  background: var(--main-bg);
+  transition: background 0.3s;
+}
+
+body.dark {
+  background: var(--main-bg-dark);
+}
+
+.app-sidebar {
+  background: #fff;
+  border-right: 1px solid #eee;
+  transition: background 0.3s;
+}
+body.dark .app-sidebar {
+  background: #232323;
+  border-right: 1px solid #444;
+}
+
+.app-sidebar ul li {
+  transition: background 0.2s;
+}
+.app-sidebar ul li.selected {
+  background: var(--main-purple);
+  color: #fff;
+}
+
+.app-sidebar ul li:hover {
+  background: var(--main-light);
+}
+body.dark .app-sidebar ul li:hover {
+  background: #4b3a5a;
+}
+
+.app-profile button {
+  background: var(--main-red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.app-profile button:hover {
+  background: #ff7875;
+}
+
+.chat-main {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
+  transition: background 0.3s;
+}
+body.dark .chat-main {
+  background: #232323;
+}
+
+.message-bubble {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin: 4px 0;
+  max-width: 70%;
+  word-break: break-word;
+}
+.message-bubble.me {
+  background: var(--main-purple);
+  color: #fff;
+  margin-left: auto;
+}
+.message-bubble.other {
+  background: #f1f0f0;
+  color: #222;
+  margin-right: auto;
+}
+body.dark .message-bubble.other {
+  background: #444;
+  color: #fff;
+}
+
+.chat-scroll::-webkit-scrollbar {
+  width: 8px;
+  background: #f1f1f1;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 8px;
+}
+.chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
