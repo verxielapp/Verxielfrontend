@@ -3,6 +3,7 @@ import axios from 'axios';
 import Chat from './Chat';
 import Profile from './Profile';
 import QRLogin from './QRLogin';
+import './App.css';
 // import logo from '../public/logo192.png'; // Bunu kaldır
 
 function App() {
@@ -263,61 +264,59 @@ function App() {
       <div className="app-container">
         {/* HEADER */}
         <div className="app-header">
-          <div className="header-logo">
-            <img src="/logo192.png" alt="Verxiel Logo" />
-            <span>Verxiel</span>
+          <div className="app-header-left">
+            <img src="/logo192.png" alt="Verxiel Logo" className="app-logo" />
+            <span className="app-title">Verxiel</span>
           </div>
-          <div className="header-user">
-            <span>{user?.displayName || user?.username || user?.email || 'Kullanıcı'}</span>
-            <button onClick={handleSettings} className="chat-action-btn" title="Ayarlar">⚙️</button>
-            <button onClick={handleLogout} className="auth-button secondary">Çıkış</button>
+          <div className="app-header-right">
+            <span className="app-user-info">{user?.displayName || user?.username || user?.email || 'Kullanıcı'}</span>
+            <button onClick={handleSettings} className="app-settings-btn">⚙️</button>
+            <button onClick={handleLogout} className="app-logout-btn">Çıkış</button>
           </div>
         </div>
         {/* ANA İÇERİK */}
-        <div className="app-main">
+        <div className="app-content">
           <div className="app-sidebar">
-            <div className="sidebar-header">
+            <div className="app-sidebar-header">
               <h4>Kişiler</h4>
-              <button onClick={() => setShowAddContact(true)} className="add-contact-btn" title="Kişi Ekle">+</button>
+              <button onClick={() => setShowAddContact(true)} className="app-add-contact-btn">+</button>
             </div>
-            <ul className="contact-list">
+            <ul className="app-contacts-list">
               {(Array.isArray(contacts) ? contacts : []).map(c => (
-                <li key={c?.id || c?._id} 
-                    className={`contact-item ${(selectedContact?.id || selectedContact?._id) === (c?.id || c?._id) ? 'selected' : ''}`}
-                    onClick={() => setSelectedContact(c)}>
+                <li key={c?.id || c?._id} className={selectedContact?.id === (c?.id || c?._id) ? 'selected' : ''} onClick={() => setSelectedContact(c)}>
                   {c?.avatarUrl ? (
-                    <img src={c.avatarUrl} alt="avatar" className="contact-avatar" />
+                    <img src={c.avatarUrl} alt="avatar" className="app-contact-avatar" />
                   ) : (
-                    <div className="contact-avatar-placeholder">
+                    <div className="app-contact-avatar-placeholder">
                       {(c?.displayName?.[0]?.toUpperCase()) || '?'}
                     </div>
                   )}
-                  <span className="contact-name">{c?.displayName || 'Bilinmiyor'}</span>
+                  <span className="app-contact-name">{c?.displayName || 'Bilinmiyor'}</span>
                 </li>
               ))}
             </ul>
             {/* Kişi ekle modalı */}
             {showAddContact && (
-              <div className="modal-overlay">
-                <div className="modal-content">
-                  <h3 className="modal-title">Kişi Ekle</h3>
+              <div className="app-add-contact-modal-overlay">
+                <div className="app-add-contact-modal-content">
+                  <h3>Kişi Ekle</h3>
                   <input
                     type="email"
                     placeholder="Email adresi"
                     value={addEmail}
                     onChange={(e) => setAddEmail(e.target.value)}
-                    className="modal-input"
+                    className="app-add-contact-input"
                   />
-                  <div className="modal-actions">
-                    <button onClick={() => addContact(addEmail)} className="modal-button primary">
+                  <div className="app-add-contact-buttons">
+                    <button onClick={() => addContact(addEmail)} className="app-add-contact-btn-primary">
                       Ekle
                     </button>
-                    <button onClick={() => setShowAddContact(false)} className="modal-button secondary">
+                    <button onClick={() => setShowAddContact(false)} className="app-add-contact-btn-secondary">
                       İptal
                     </button>
                   </div>
                   {addContactMsg && (
-                    <div className={`auth-message ${addContactMsg.includes('eklendi') ? 'success' : 'error'}`}>
+                    <div className={`app-add-contact-message ${addContactMsg.includes('eklendi') ? 'success' : 'error'}`}>
                       {addContactMsg}
                     </div>
                   )}
@@ -325,14 +324,14 @@ function App() {
               </div>
             )}
           </div>
-          <div className="chat-area">
+          <div className="app-main-content">
             {selectedContact ? (
               <Chat token={token} user={user} contact={selectedContact} addContact={addContact} />
             ) : (
-              <div style={{ margin: 40, color: '#888', textAlign: 'center' }}>Bir kişi seçin...</div>
+              <div className="app-no-contact-message">Bir kişi seçin...</div>
             )}
           </div>
-          <div className="profile-sidebar">
+          <div className="app-profile-sidebar">
             <Profile token={token} onContactsChange={setContacts} addContact={addContact} deleteContact={deleteContact} />
           </div>
         </div>
@@ -343,14 +342,14 @@ function App() {
   // Email doğrulama ekranı
   if (showEmailVerification) {
     return (
-      <div className="auth-container">
-        <div className="auth-card fade-in">
-          <div className="auth-header">
-            <div className="auth-logo">✉️</div>
-            <h2 className="auth-title">E-posta Doğrulama</h2>
-            <p className="auth-subtitle">
-              E-posta adresinizi girin ve doğrulama kodunu alın.
-            </p>
+      <div className="app-auth-container">
+        <div className="app-auth-content">
+          <div className="app-auth-header">
+            <div className="app-auth-header-icon">
+              ✉️
+            </div>
+            <h2>E-posta Doğrulama</h2>
+            <p>E-posta adresinizi girin ve doğrulama kodunu alın.</p>
           </div>
 
           {!verificationEmail ? (
@@ -369,15 +368,7 @@ function App() {
                 value={verificationEmail}
                 onChange={(e) => setVerificationEmail(e.target.value)}
                 required
-                className="auth-input"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (verificationEmail && verificationEmail.trim()) {
-                      sendVerificationCode(verificationEmail);
-                    }
-                  }
-                }}
+                className="app-auth-input"
               />
               <button 
                 type="button"
@@ -389,13 +380,14 @@ function App() {
                     }
                   }
                 }}
-                className="auth-button">
+                className="app-auth-btn-primary"
+              >
                 📧 Doğrulama Kodu Gönder
               </button>
             </form>
           ) : (
             <>
-              <div className="auth-message success">
+              <div className="app-auth-message-info">
                 <p>
                   📧 <strong>{verificationEmail}</strong> adresine doğrulama kodu gönderildi.
                 </p>
@@ -413,15 +405,7 @@ function App() {
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   required
-                  className="auth-input"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (verificationCode && verificationCode.trim()) {
-                        handleEmailVerification(e);
-                      }
-                    }
-                  }}
+                  className="app-auth-input"
                 />
                 <button 
                   type="button"
@@ -430,12 +414,13 @@ function App() {
                       handleEmailVerification(e);
                     }
                   }}
-                  className="auth-button">
+                  className="app-auth-btn-primary"
+                >
                   ✅ Doğrula
                 </button>
               </form>
               
-              <button onClick={resendVerificationCode} className="auth-button secondary">
+              <button onClick={resendVerificationCode} className="app-auth-btn-secondary">
                 🔄 Kodu Yeniden Gönder
               </button>
             </>
@@ -447,15 +432,13 @@ function App() {
             setVerificationCode('');
             setVerificationPassword('');
             setMessage('');
-          }} className="auth-button secondary">
+          }} className="app-auth-btn-secondary">
             ← Geri Dön
           </button>
 
-          {message && (
-            <div className={`auth-message ${message.includes('başarılı') || message.includes('gönderildi') ? 'success' : 'error'}`}>
-              {message}
-            </div>
-          )}
+          <div className={`app-auth-message ${message.includes('başarılı') || message.includes('gönderildi') ? 'success' : message ? 'error' : ''}`}>
+            {message}
+          </div>
         </div>
       </div>
     );
@@ -468,64 +451,64 @@ function App() {
 
   // Giriş/kayıt ekranı
   return (
-    <div className="auth-container">
-      <div className="auth-card fade-in">
-        <div className="auth-header">
-          <div className="auth-logo">
-            {mode === 'login' ? '🔐' : '📝'}
+    <div className="app-auth-container">
+      <div className="app-auth-content">
+        <div className="app-auth-header">
+          <div className="app-auth-header-icon">
+            {mode === 'login' ? '🔐' : '��'}
           </div>
-          <h2 className="auth-title">
+          <h2>
             {mode === 'login' ? 'Hoş Geldiniz' : 'Hesap Oluştur'}
           </h2>
-          <p className="auth-subtitle">
+          <p>
             {mode === 'login' ? 'Hesabınıza giriş yapın' : 'Yeni hesabınızı oluşturun'}
           </p>
         </div>
 
-        <form onSubmit={handleAuth} className="auth-form">
-          <input
-            type="email"
+      <form onSubmit={handleAuth}>
+        <input
+          type="email"
             placeholder="E-posta Adresi"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            className="auth-input"
-          />
-          <input
-            type="password"
-            placeholder="Şifre"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            className="auth-input"
-          />
-          {mode === 'register' && (
-            <>
-              <input
-                type="text"
-                placeholder="Görünen Ad"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                required
-                className="auth-input"
-              />
-              <input
-                type="text"
-                placeholder="Kullanıcı Adı"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-                className="auth-input"
-              />
-            </>
-          )}
-          <button type="submit" className="auth-button">
-            {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
-          </button>
-        </form>
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+            className="app-auth-input"
+        />
+        <input
+          type="password"
+          placeholder="Şifre"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+            className="app-auth-input"
+        />
+        {mode === 'register' && (
+          <>
+            <input
+              type="text"
+              placeholder="Görünen Ad"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              required
+                className="app-auth-input"
+            />
+            <input
+              type="text"
+              placeholder="Kullanıcı Adı"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+                className="app-auth-input"
+            />
+          </>
+        )}
+          <button type="submit" className="app-auth-btn-primary">
+          {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+        </button>
+      </form>
 
-        {mode === 'login' && (
-          <button onClick={() => setShowQRLogin(true)} className="auth-button secondary">
+      {mode === 'login' && (
+        <button onClick={() => setShowQRLogin(true)} className="app-auth-btn-secondary">
             📱 QR Kod ile Giriş
           </button>
         )}
@@ -536,17 +519,17 @@ function App() {
             setVerificationEmail('');
             setVerificationCode('');
             setMessage('');
-          }} className="auth-button secondary">
+          }} className="app-auth-btn-primary">
             ✉️ Email Doğrula
           </button>
         )}
 
-        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="auth-button secondary">
+        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="app-auth-btn-secondary">
           {mode === 'login' ? 'Hesabın yok mu? Kayıt ol' : 'Zaten hesabın var mı? Giriş yap'}
         </button>
 
         {message && (
-          <div className={`auth-message ${message.includes('başarılı') ? 'success' : 'error'}`}>
+          <div className={`app-auth-message ${message.includes('başarılı') ? 'success' : 'error'}`}>
             {message}
           </div>
         )}

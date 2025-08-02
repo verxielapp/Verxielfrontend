@@ -191,92 +191,81 @@ export default function Chat({ token, user, contact, addContact }) {
   // const handleVideoCall = () => alert('Görüntülü arama yakında!');
 
   return (
-    <div className="chat-area">
-      {/* Chat Header */}
-      <div className="chat-header">
-        <div className="chat-contact-info">
+    <div style={{ maxWidth: 600, height: '100%', minHeight: 0, margin: 'auto', marginTop: 10, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001', display: 'flex', flexDirection: 'column', padding: 0 }}>
+      {/* Arama ekranı */}
+      {inCall && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+          <div style={{ background: '#222', color: '#fff', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div>{callType === 'video' ? 'Görüntülü Arama' : 'Sesli Arama'}</div>
+            <div style={{ display: 'flex', gap: 16 }}>
+              {callType === 'video' && <video ref={remoteVideoRef} autoPlay playsInline style={{ width: 240, height: 180, background: '#111', borderRadius: 8 }} />}
+              <audio ref={remoteVideoRef} autoPlay hidden={callType === 'video'} />
+              {callType === 'video' && <video ref={localVideoRef} autoPlay playsInline muted style={{ width: 120, height: 90, background: '#222', borderRadius: 8, position: 'absolute', right: 32, bottom: 32, border: '2px solid #a259e6' }} />}
+              <audio ref={localVideoRef} autoPlay muted hidden={callType === 'video'} />
+            </div>
+            <button onClick={endCall} style={{ background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 'bold', fontSize: 18, marginTop: 16 }}>Kapat</button>
+          </div>
+        </div>
+      )}
+      {/* Gelen arama modalı */}
+      {callModal && callIncoming && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0008', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 2px 16px #0003', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div><b>{callIncoming.from.displayName || callIncoming.from.username || callIncoming.from.email}</b> sizi arıyor ({callIncoming.type === 'video' ? 'Görüntülü' : 'Sesli'})</div>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <button onClick={acceptCall} style={{ background: '#25d366', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 'bold', fontSize: 18 }}>Kabul Et</button>
+              <button onClick={endCall} style={{ background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 'bold', fontSize: 18 }}>Reddet</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Başlık ve arama başlatma butonları */}
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #eee', padding: '8px 12px', gap: 12, justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {contact?.avatarUrl ? (
-            <img src={contact.avatarUrl} alt="avatar" className="contact-avatar" />
+            <img src={contact.avatarUrl} alt="avatar" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
-            <div className="contact-avatar-placeholder">
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 20 }}>
               {(contact?.displayName?.[0]?.toUpperCase()) || '?'}
             </div>
           )}
-          <span className="chat-contact-name">{contact?.displayName || 'Bilinmiyor'}</span>
+          <span style={{ fontWeight: 'bold', fontSize: 18 }}>{contact?.displayName || 'Bilinmiyor'}</span>
         </div>
-        <div className="chat-actions">
-          <button onClick={() => startCall('Sesli Arama')} className="chat-action-btn" title="Sesli Arama">📞</button>
-          <button onClick={() => startCall('Görüntülü Arama')} className="chat-action-btn" title="Görüntülü Arama">📹</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={() => startCall('audio')} style={{ background: 'none', border: 'none', color: '#a259e6', fontSize: 22, cursor: 'pointer' }} title="Sesli Arama">🔊</button>
+          <button onClick={() => startCall('video')} style={{ background: 'none', border: 'none', color: '#a259e6', fontSize: 22, cursor: 'pointer' }} title="Görüntülü Arama">📹</button>
         </div>
       </div>
-
-      {/* Messages */}
-      <div className="messages-container" ref={scrollRef}>
+      <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
         {(Array.isArray(messages) ? messages : []).map((msg, i) => {
           const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
           const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
           const isMe = fromId === myId;
-          
+          // Kişi listesinde yoksa 'Bilinmeyen Kişi'
+          let name = 'Bilinmeyen Kişi';
+          if (isMe) {
+            name = 'Sen';
+          } else if (contact && (fromId === (contact.id || contact._id))) {
+            name = contact.displayName || contact.username || contact.email || 'Bilinmeyen Kişi';
+          } else if (msg.from?.displayName || msg.from?.username || msg.from?.email) {
+            name = msg.from.displayName || msg.from.username || msg.from.email;
+          }
           return (
-            <div key={i} className={`message ${isMe ? 'own' : 'other'}`}>
-              <div className="message-content">
-                {msg.content}
-                <div className="message-time">
-                  {new Date(msg.timestamp || Date.now()).toLocaleTimeString()}
-                </div>
-              </div>
+            <div key={i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ textAlign: isMe ? 'right' : 'left', margin: '2px 0' }}>
+              <b>{name}</b>: {msg.content}
             </div>
           );
         })}
       </div>
-
-      {/* Message Input */}
-      <div className="message-input-container">
-        <form onSubmit={sendMessage} className="message-input-form">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Mesajınızı yazın..."
-            className="message-input"
-          />
-          <button type="submit" disabled={!input.trim()} className="send-button">
-            ➤
-          </button>
-        </form>
-      </div>
-
-      {/* Call Modal */}
-      {callModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3 className="modal-title">Gelen Arama</h3>
-            <p>{callIncoming?.from?.displayName || 'Bilinmiyor'} sizi {callIncoming?.type === 'video' ? 'görüntülü' : 'sesli'} arama yapıyor</p>
-            <div className="modal-actions">
-              <button onClick={acceptCall} className="modal-button primary">Kabul Et</button>
-              <button onClick={() => setCallModal(false)} className="modal-button secondary">Reddet</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Call Interface */}
-      {inCall && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '600px' }}>
-            <h3 className="modal-title">{callType} - Devam Ediyor</h3>
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-              <video ref={localVideoRef} autoPlay muted style={{ width: '200px', height: '150px', background: '#000' }} />
-              {remoteStream && (
-                <video ref={remoteVideoRef} autoPlay style={{ width: '200px', height: '150px', background: '#000' }} />
-              )}
-            </div>
-            <div className="modal-actions">
-              <button onClick={endCall} className="modal-button secondary">Aramayı Sonlandır</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <form onSubmit={sendMessage} style={{ display: 'flex', gap: 8, padding: 8, borderTop: '1px solid #eee', background: '#fafafa', margin: 0, boxSizing: 'border-box' }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          style={{ flex: 1, borderRadius: 20, border: '1px solid #ccc', padding: '8px 16px', margin: 0 }}
+          placeholder="Mesaj yaz..."
+        />
+        <button type="submit" style={{ borderRadius: 20, padding: '8px 20px', background: '#a259e6', color: '#fff', border: 'none', margin: 0 }}>Gönder</button>
+      </form>
     </div>
   );
 } 
