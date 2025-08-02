@@ -11,9 +11,17 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
   const [addUsername, setAddUsername] = useState('');
 
   useEffect(() => {
+    if (!token) {
+      console.log('Profile: Token yok');
+      return;
+    }
+    
+    console.log('Profile: Loading with token:', token.substring(0, 20) + '...');
+    
     axios.get('https://verxiel.onrender.com/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
+      console.log('Profile loaded successfully:', res.data);
       if (res.data) {
         setProfile(res.data);
         setDisplayName(res.data.displayName || '');
@@ -21,17 +29,20 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       }
     }).catch(err => {
       console.error('Profile fetch error:', err);
+      console.error('Profile error response:', err.response);
       setProfile(null);
     });
     // Kişi listesini çek
     axios.get('https://verxiel.onrender.com/api/auth/contacts', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
+      console.log('Profile contacts loaded successfully:', res.data);
       const contactsData = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.contacts) ? res.data.contacts : []);
       setContacts(contactsData);
       if (onContactsChange) onContactsChange(contactsData);
     }).catch(err => {
       console.error('Contacts fetch error:', err);
+      console.error('Contacts error response:', err.response);
       setContacts([]);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

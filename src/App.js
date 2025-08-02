@@ -51,10 +51,18 @@ function App() {
 
   // Kişi listesini yükle
   const loadContacts = useCallback(async () => {
+    if (!token) {
+      console.log('Token yok, contacts yüklenmiyor');
+      return;
+    }
+    
+    console.log('Loading contacts with token:', token.substring(0, 20) + '...');
+    
     try {
       const res = await axios.get('https://verxiel.onrender.com/api/auth/contacts', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Contacts loaded successfully:', res.data);
       // API'den gelen veriyi kontrol et
       const contactsData = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.contacts) ? res.data.contacts : []);
       setContacts(contactsData);
@@ -64,6 +72,7 @@ function App() {
       }
     } catch (err) {
       console.error('Load contacts error:', err);
+      console.error('Error response:', err.response);
       setContacts([]); // Hata durumunda boş array
       // Eğer 500 hatası varsa, kullanıcıyı bilgilendir
       if (err.response?.status === 500) {
