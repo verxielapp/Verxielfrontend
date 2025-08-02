@@ -53,11 +53,12 @@ function App() {
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
     try {
+      console.log('Verifying token:', tokenToVerify.substring(0, 20) + '...');
       const res = await axios.get('https://verxiel.onrender.com/api/verify-token', {
         headers: { Authorization: `Bearer ${tokenToVerify}` }
       });
       console.log('Token verification result:', res.data);
-      return res.data.valid;
+      return res.data.valid === true; // Explicit boolean check
     } catch (err) {
       console.error('Token verification failed:', err.response?.data || err.message);
       return false;
@@ -75,14 +76,24 @@ function App() {
       
       if (savedToken && savedUser) {
         console.log('Checking token validity...');
-        const isValid = await verifyToken(savedToken);
-        
-        if (isValid) {
-          console.log('Token is valid, setting user data');
-          setToken(savedToken);
-          setUser(JSON.parse(savedUser));
-        } else {
-          console.log('Token is invalid, clearing data');
+        try {
+          const isValid = await verifyToken(savedToken);
+          console.log('Token validity result:', isValid);
+          
+          if (isValid === true) {
+            console.log('Token is valid, setting user data');
+            setToken(savedToken);
+            setUser(JSON.parse(savedUser));
+          } else {
+            console.log('Token is invalid, clearing data');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setToken('');
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Token check error:', error);
+          // Hata durumunda da temizle
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setToken('');
