@@ -55,37 +55,60 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
     setAddUsername('');
   };
 
-  if (!profile) return <div>Yükleniyor...</div>;
+  if (!profile) return <div className="loading-spinner">Yükleniyor...</div>;
 
   return (
-    <div style={{ maxWidth: 400, margin: 'auto', marginTop: 40 }}>
+    <div className="profile-sidebar">
       <h3>Profil</h3>
-      <form onSubmit={update}>
-        <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Görünen Ad" style={{ width: '100%', marginBottom: 8 }} />
-        <input value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="Avatar URL" style={{ width: '100%', marginBottom: 8 }} />
-        <button type="submit" style={{ width: '100%' }}>Güncelle</button>
+      <form onSubmit={update} className="auth-form">
+        <input 
+          value={displayName} 
+          onChange={e => setDisplayName(e.target.value)} 
+          placeholder="Görünen Ad" 
+          className="auth-input"
+        />
+        <input 
+          value={avatarUrl} 
+          onChange={e => setAvatarUrl(e.target.value)} 
+          placeholder="Avatar URL" 
+          className="auth-input"
+        />
+        <button type="submit" className="auth-button">Güncelle</button>
       </form>
-      <div style={{ marginTop: 8 }}>{msg}</div>
-      <hr />
+      {msg && <div className={`auth-message ${msg.includes('güncellendi') ? 'success' : 'error'}`}>{msg}</div>}
+      
+      <hr style={{ margin: '1.5rem 0', border: 'none', borderTop: '1px solid rgba(0,0,0,0.1)' }} />
+      
       <h4>Kişi Ekle</h4>
-      <form onSubmit={handleAddContact} style={{ display: 'flex', gap: 4, flexDirection: 'column' }}>
-        <input value={addEmail} onChange={e => setAddEmail(e.target.value)} placeholder="E-posta ile kişi ekle" style={{ width: '100%' }} />
-        <input value={addUsername} onChange={e => setAddUsername(e.target.value)} placeholder="Kullanıcı adı ile kişi ekle" style={{ width: '100%' }} />
-        <button type="submit">Ekle</button>
+      <form onSubmit={handleAddContact} className="auth-form">
+        <input 
+          value={addEmail} 
+          onChange={e => setAddEmail(e.target.value)} 
+          placeholder="E-posta ile kişi ekle" 
+          className="auth-input"
+        />
+        <input 
+          value={addUsername} 
+          onChange={e => setAddUsername(e.target.value)} 
+          placeholder="Kullanıcı adı ile kişi ekle" 
+          className="auth-input"
+        />
+        <button type="submit" className="auth-button">Ekle</button>
       </form>
+      
       <h4>Kişiler</h4>
-      <ul>
+      <ul className="contact-list">
         {(Array.isArray(contacts) ? contacts : []).map(c => (
-          <li key={c?.id || c?._id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <li key={c?.id || c?._id} className="contact-item">
             {c?.avatarUrl ? (
-              <img src={c.avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+              <img src={c.avatarUrl} alt="avatar" className="contact-avatar" />
             ) : (
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 16 }}>
+              <div className="contact-avatar-placeholder">
                 {(c?.displayName?.[0]?.toUpperCase()) || '?'}
               </div>
             )}
-            <span>{c?.displayName || 'Bilinmiyor'} ({c?.email || 'Bilinmiyor'})</span>
-            <button onClick={() => deleteContact(c?.id || c?._id)} style={{ marginLeft: 8, color: 'red' }}>Sil</button>
+            <span className="contact-name">{c?.displayName || 'Bilinmiyor'} ({c?.email || 'Bilinmiyor'})</span>
+            <button onClick={() => deleteContact(c?.id || c?._id)} className="auth-button secondary" style={{ marginLeft: 8, padding: '0.5rem 1rem', fontSize: '0.8rem' }}>Sil</button>
           </li>
         ))}
       </ul>

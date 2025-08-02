@@ -260,125 +260,64 @@ function App() {
   // Eğer token varsa sohbet ve profil ekranını göster
   if (token) {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="app-container">
         {/* HEADER */}
-        <div style={{
-          width: '100%',
-          background: '#222',
-          color: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
-          height: 60,
-          minHeight: 60,
-          boxSizing: 'border-box',
-          boxShadow: '0 2px 8px #0002',
-          zIndex: 10
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <img src="/logo192.png" alt="Verxiel Logo" style={{ width: 40, height: 40, borderRadius: 12, background: 'white', boxShadow: '0 1px 4px #0002' }} />
-            <span style={{ fontWeight: 'bold', fontSize: 24, letterSpacing: 1 }}>Verxiel</span>
+        <div className="app-header">
+          <div className="header-logo">
+            <img src="/logo192.png" alt="Verxiel Logo" />
+            <span>Verxiel</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ fontSize: 16, fontWeight: 500 }}>{user?.displayName || user?.username || user?.email || 'Kullanıcı'}</span>
-            <button onClick={handleSettings} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', marginRight: 8 }} title="Ayarlar">⚙️</button>
-            <button onClick={handleLogout} style={{ background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 'bold', cursor: 'pointer' }}>Çıkış</button>
+          <div className="header-user">
+            <span>{user?.displayName || user?.username || user?.email || 'Kullanıcı'}</span>
+            <button onClick={handleSettings} className="chat-action-btn" title="Ayarlar">⚙️</button>
+            <button onClick={handleLogout} className="auth-button secondary">Çıkış</button>
           </div>
         </div>
         {/* ANA İÇERİK */}
-        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-          <div className="app-sidebar" style={{ width: 220, borderRight: '1px solid #ccc', padding: 12, background: '#fafafa', minWidth: 120, position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <h4 style={{ margin: 0 }}>Kişiler</h4>
-              <button onClick={() => setShowAddContact(true)} style={{ background: '#a259e6', color: '#fff', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Kişi Ekle">+</button>
+        <div className="app-main">
+          <div className="app-sidebar">
+            <div className="sidebar-header">
+              <h4>Kişiler</h4>
+              <button onClick={() => setShowAddContact(true)} className="add-contact-btn" title="Kişi Ekle">+</button>
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul className="contact-list">
               {(Array.isArray(contacts) ? contacts : []).map(c => (
-                <li key={c?.id || c?._id} className={(selectedContact?.id || selectedContact?._id) === (c?.id || c?._id) ? 'selected' : ''} style={{
-                  margin: '8px 0',
-                  cursor: 'pointer',
-                  fontWeight: (selectedContact?.id || selectedContact?._id) === (c?.id || c?._id) ? 'bold' : 'normal',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  borderRadius: 8, padding: 4
-                }} onClick={() => setSelectedContact(c)}>
+                <li key={c?.id || c?._id} 
+                    className={`contact-item ${(selectedContact?.id || selectedContact?._id) === (c?.id || c?._id) ? 'selected' : ''}`}
+                    onClick={() => setSelectedContact(c)}>
                   {c?.avatarUrl ? (
-                    <img src={c.avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={c.avatarUrl} alt="avatar" className="contact-avatar" />
                   ) : (
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 16 }}>
+                    <div className="contact-avatar-placeholder">
                       {(c?.displayName?.[0]?.toUpperCase()) || '?'}
                     </div>
                   )}
-                  <span style={{ flex: 1 }}>{c?.displayName || 'Bilinmiyor'}</span>
+                  <span className="contact-name">{c?.displayName || 'Bilinmiyor'}</span>
                 </li>
               ))}
             </ul>
             {/* Kişi ekle modalı */}
             {showAddContact && (
-              <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1000
-              }}>
-                <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '10px',
-                  width: '300px',
-                  maxWidth: '90vw'
-                }}>
-                  <h3>Kişi Ekle</h3>
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <h3 className="modal-title">Kişi Ekle</h3>
                   <input
                     type="email"
                     placeholder="Email adresi"
                     value={addEmail}
                     onChange={(e) => setAddEmail(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      margin: '10px 0',
-                      border: '1px solid #ddd',
-                      borderRadius: '5px'
-                    }}
+                    className="modal-input"
                   />
-                  <div style={{ marginTop: '10px' }}>
-                    <button onClick={() => addContact(addEmail)} style={{
-                      padding: '10px 20px',
-                      marginRight: '10px',
-                      background: '#007bff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}>
+                  <div className="modal-actions">
+                    <button onClick={() => addContact(addEmail)} className="modal-button primary">
                       Ekle
                     </button>
-                    <button onClick={() => setShowAddContact(false)} style={{
-                      padding: '10px 20px',
-                      background: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}>
+                    <button onClick={() => setShowAddContact(false)} className="modal-button secondary">
                       İptal
                     </button>
                   </div>
                   {addContactMsg && (
-                    <div style={{
-                      marginTop: '10px',
-                      padding: '10px',
-                      background: addContactMsg.includes('eklendi') ? '#d4edda' : '#f8d7da',
-                      color: addContactMsg.includes('eklendi') ? '#155724' : '#721c24',
-                      borderRadius: '5px'
-                    }}>
+                    <div className={`auth-message ${addContactMsg.includes('eklendi') ? 'success' : 'error'}`}>
                       {addContactMsg}
                     </div>
                   )}
@@ -386,14 +325,14 @@ function App() {
               </div>
             )}
           </div>
-          <div style={{ flex: 1 }}>
+          <div className="chat-area">
             {selectedContact ? (
               <Chat token={token} user={user} contact={selectedContact} addContact={addContact} />
             ) : (
-              <div style={{ margin: 40, color: '#888' }}>Bir kişi seçin...</div>
+              <div style={{ margin: 40, color: '#888', textAlign: 'center' }}>Bir kişi seçin...</div>
             )}
           </div>
-          <div style={{ width: 320, borderLeft: '1px solid #ccc', padding: 12 }}>
+          <div className="profile-sidebar">
             <Profile token={token} onContactsChange={setContacts} addContact={addContact} deleteContact={deleteContact} />
           </div>
         </div>
@@ -404,51 +343,12 @@ function App() {
   // Email doğrulama ekranı
   if (showEmailVerification) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '20px',
-          padding: '40px',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          maxWidth: '400px',
-          width: '100%'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-              borderRadius: '50%',
-              margin: '0 auto 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '32px',
-              color: 'white',
-              fontWeight: 'bold'
-            }}>
-              ✉️
-            </div>
-            <h2 style={{ 
-              margin: '0 0 10px 0', 
-              color: '#333', 
-              fontSize: '28px',
-              fontWeight: 'bold'
-            }}>E-posta Doğrulama</h2>
-            <p style={{ 
-              color: '#666', 
-              margin: '0',
-              fontSize: '16px'
-            }}>
+      <div className="auth-container">
+        <div className="auth-card fade-in">
+          <div className="auth-header">
+            <div className="auth-logo">✉️</div>
+            <h2 className="auth-title">E-posta Doğrulama</h2>
+            <p className="auth-subtitle">
               E-posta adresinizi girin ve doğrulama kodunu alın.
             </p>
           </div>
@@ -469,19 +369,7 @@ function App() {
                 value={verificationEmail}
                 onChange={(e) => setVerificationEmail(e.target.value)}
                 required
-                style={{ 
-                  width: '100%', 
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '2px solid #e1e5e9',
-                  fontSize: '16px',
-                  marginBottom: '20px',
-                  boxSizing: 'border-box',
-                  transition: 'all 0.3s ease',
-                  outline: 'none'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#FF6B6B'}
-                onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
+                className="auth-input"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -501,40 +389,14 @@ function App() {
                     }
                   }
                 }}
-                style={{ 
-                  width: '100%',
-                  padding: '16px',
-                  background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
-                  marginBottom: '16px'
-                }}
-                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}>
+                className="auth-button">
                 📧 Doğrulama Kodu Gönder
               </button>
             </form>
           ) : (
             <>
-              <div style={{ 
-                background: 'rgba(255, 107, 107, 0.1)', 
-                padding: '16px', 
-                borderRadius: '12px', 
-                marginBottom: '20px',
-                border: '1px solid rgba(255, 107, 107, 0.3)'
-              }}>
-                <p style={{ 
-                  margin: '0', 
-                  color: '#FF6B6B', 
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}>
+              <div className="auth-message success">
+                <p>
                   📧 <strong>{verificationEmail}</strong> adresine doğrulama kodu gönderildi.
                 </p>
               </div>
@@ -551,19 +413,7 @@ function App() {
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   required
-                  style={{ 
-                    width: '100%', 
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '2px solid #e1e5e9',
-                    fontSize: '16px',
-                    marginBottom: '20px',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.3s ease',
-                    outline: 'none'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#FF6B6B'}
-                  onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
+                  className="auth-input"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -580,47 +430,12 @@ function App() {
                       handleEmailVerification(e);
                     }
                   }}
-                  style={{ 
-                    width: '100%',
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
-                    marginBottom: '16px'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}>
+                  className="auth-button">
                   ✅ Doğrula
                 </button>
               </form>
               
-              <button onClick={resendVerificationCode} style={{ 
-                width: '100%',
-                padding: '12px',
-                background: 'transparent',
-                color: '#FF6B6B',
-                border: '2px solid #FF6B6B',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                marginBottom: '16px'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = '#FF6B6B';
-                e.target.style.color = 'white';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'transparent';
-                e.target.style.color = '#FF6B6B';
-              }}>
+              <button onClick={resendVerificationCode} className="auth-button secondary">
                 🔄 Kodu Yeniden Gönder
               </button>
             </>
@@ -632,40 +447,15 @@ function App() {
             setVerificationCode('');
             setVerificationPassword('');
             setMessage('');
-          }} style={{ 
-            width: '100%',
-            padding: '12px',
-            background: 'transparent',
-            color: '#666',
-            border: '2px solid #ccc',
-            borderRadius: '12px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = '#666';
-            e.target.style.color = 'white';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'transparent';
-            e.target.style.color = '#666';
-          }}>
+          }} className="auth-button secondary">
             ← Geri Dön
           </button>
 
-          <div style={{ 
-            marginTop: '20px', 
-            color: message.includes('başarılı') || message.includes('gönderildi') ? 'green' : message ? 'red' : 'transparent',
-            textAlign: 'center',
-            fontWeight: '500',
-            padding: '12px',
-            borderRadius: '8px',
-            background: message.includes('başarılı') || message.includes('gönderildi') ? 'rgba(0, 255, 0, 0.1)' : message ? 'rgba(255, 0, 0, 0.1)' : 'transparent'
-          }}>
-            {message}
-          </div>
+          {message && (
+            <div className={`auth-message ${message.includes('başarılı') || message.includes('gönderildi') ? 'success' : 'error'}`}>
+              {message}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -678,179 +468,64 @@ function App() {
 
   // Giriş/kayıt ekranı
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '20px',
-        padding: '40px',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        maxWidth: '400px',
-        width: '100%'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <div style={{
-            width: '80px',
-            height: '80px',
-            background: 'linear-gradient(135deg, #a259e6, #764ba2)',
-            borderRadius: '50%',
-            margin: '0 auto 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '32px',
-            color: 'white',
-            fontWeight: 'bold'
-          }}>
+    <div className="auth-container">
+      <div className="auth-card fade-in">
+        <div className="auth-header">
+          <div className="auth-logo">
             {mode === 'login' ? '🔐' : '📝'}
           </div>
-          <h2 style={{ 
-            margin: '0 0 10px 0', 
-            color: '#333', 
-            fontSize: '28px',
-            fontWeight: 'bold'
-          }}>
+          <h2 className="auth-title">
             {mode === 'login' ? 'Hoş Geldiniz' : 'Hesap Oluştur'}
           </h2>
-          <p style={{ 
-            color: '#666', 
-            margin: '0',
-            fontSize: '16px'
-          }}>
+          <p className="auth-subtitle">
             {mode === 'login' ? 'Hesabınıza giriş yapın' : 'Yeni hesabınızı oluşturun'}
           </p>
         </div>
 
-      <form onSubmit={handleAuth}>
-        <input
-          type="email"
+        <form onSubmit={handleAuth} className="auth-form">
+          <input
+            type="email"
             placeholder="E-posta Adresi"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-            style={{ 
-              width: '100%', 
-              padding: '16px',
-              borderRadius: '12px',
-              border: '2px solid #e1e5e9',
-              fontSize: '16px',
-              marginBottom: '16px',
-              boxSizing: 'border-box',
-              transition: 'all 0.3s ease',
-              outline: 'none'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#a259e6'}
-            onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
-        />
-        <input
-          type="password"
-          placeholder="Şifre"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-            style={{ 
-              width: '100%', 
-              padding: '16px',
-              borderRadius: '12px',
-              border: '2px solid #e1e5e9',
-              fontSize: '16px',
-              marginBottom: '16px',
-              boxSizing: 'border-box',
-              transition: 'all 0.3s ease',
-              outline: 'none'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#a259e6'}
-            onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
-        />
-        {mode === 'register' && (
-          <>
-            <input
-              type="text"
-              placeholder="Görünen Ad"
-              value={displayName}
-              onChange={e => setDisplayName(e.target.value)}
-              required
-                style={{ 
-                  width: '100%', 
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '2px solid #e1e5e9',
-                  fontSize: '16px',
-                  marginBottom: '16px',
-                  boxSizing: 'border-box',
-                  transition: 'all 0.3s ease',
-                  outline: 'none'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#a259e6'}
-                onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
-            />
-            <input
-              type="text"
-              placeholder="Kullanıcı Adı"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-                style={{ 
-                  width: '100%', 
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '2px solid #e1e5e9',
-                  fontSize: '16px',
-                  marginBottom: '16px',
-                  boxSizing: 'border-box',
-                  transition: 'all 0.3s ease',
-                  outline: 'none'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#a259e6'}
-                onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
-            />
-          </>
-        )}
-          <button type="submit" style={{ 
-            width: '100%',
-            padding: '16px',
-            background: 'linear-gradient(135deg, #a259e6, #764ba2)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(162, 89, 230, 0.3)',
-            marginBottom: '16px'
-          }}
-          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}>
-          {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
-        </button>
-      </form>
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            className="auth-input"
+          />
+          <input
+            type="password"
+            placeholder="Şifre"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            className="auth-input"
+          />
+          {mode === 'register' && (
+            <>
+              <input
+                type="text"
+                placeholder="Görünen Ad"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                required
+                className="auth-input"
+              />
+              <input
+                type="text"
+                placeholder="Kullanıcı Adı"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                required
+                className="auth-input"
+              />
+            </>
+          )}
+          <button type="submit" className="auth-button">
+            {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+          </button>
+        </form>
 
-      {mode === 'login' && (
-        <button onClick={() => setShowQRLogin(true)} style={{ 
-          width: '100%', 
-            padding: '16px',
-            background: 'linear-gradient(135deg, #25D366, #128C7E)',
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '12px', 
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)',
-            marginBottom: '16px'
-          }}
-          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}>
+        {mode === 'login' && (
+          <button onClick={() => setShowQRLogin(true)} className="auth-button secondary">
             📱 QR Kod ile Giriş
           </button>
         )}
@@ -861,60 +536,17 @@ function App() {
             setVerificationEmail('');
             setVerificationCode('');
             setMessage('');
-          }} style={{ 
-            width: '100%', 
-            padding: '16px',
-            background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-            color: 'white', 
-          border: 'none', 
-            borderRadius: '12px', 
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
-            marginBottom: '16px'
-          }}
-          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}>
+          }} className="auth-button secondary">
             ✉️ Email Doğrula
           </button>
         )}
 
-        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} style={{ 
-          width: '100%',
-          padding: '12px',
-          background: 'transparent',
-          color: '#a259e6',
-          border: '2px solid #a259e6',
-          borderRadius: '12px',
-          fontSize: '16px',
-          fontWeight: 'bold', 
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          marginBottom: '16px'
-        }}
-        onMouseEnter={(e) => {
-          e.target.style.background = '#a259e6';
-          e.target.style.color = 'white';
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.background = 'transparent';
-          e.target.style.color = '#a259e6';
-        }}>
+        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="auth-button secondary">
           {mode === 'login' ? 'Hesabın yok mu? Kayıt ol' : 'Zaten hesabın var mı? Giriş yap'}
         </button>
 
         {message && (
-          <div style={{ 
-            marginTop: '16px', 
-            color: message.includes('başarılı') ? 'green' : 'red',
-            textAlign: 'center',
-            fontWeight: '500',
-            padding: '12px',
-            borderRadius: '8px',
-            background: message.includes('başarılı') ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)'
-          }}>
+          <div className={`auth-message ${message.includes('başarılı') ? 'success' : 'error'}`}>
             {message}
           </div>
         )}
