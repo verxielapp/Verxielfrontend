@@ -50,7 +50,7 @@ function App() {
   // Kişi listesini yükle
   const loadContacts = useCallback(async () => {
     try {
-      const res = await axios.get('/api/auth/contacts', {
+      const res = await axios.get('https://verxiel.onrender.com/api/auth/contacts', {
         headers: { Authorization: `Bearer ${token}` }
       });
       // API'den gelen veriyi kontrol et
@@ -75,7 +75,7 @@ function App() {
   // Kişi ekle
   const addContact = async (email) => {
     try {
-      await axios.post('/api/auth/add-contact-email', { email }, {
+      await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAddContactMsg('Kişi eklendi!');
@@ -90,7 +90,7 @@ function App() {
   // Kişi sil
   const deleteContact = async (contactId) => {
     try {
-      await axios.post('/api/auth/delete-contact', { contactId }, {
+      await axios.post('https://verxiel.onrender.com/api/auth/delete-contact', { contactId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const updated = contacts.filter(c => (c.id || c._id) !== contactId);
@@ -113,7 +113,7 @@ function App() {
     setMessage('');
     
     try {
-      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const endpoint = mode === 'login' ? 'https://verxiel.onrender.com/api/auth/login' : 'https://verxiel.onrender.com/api/auth/register';
       const data = mode === 'login' ? { email, password } : { email, password, displayName, username };
       
       const res = await axios.post(endpoint, data);
@@ -168,7 +168,7 @@ function App() {
   const handleEmailVerification = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/auth/verify-email', { 
+      await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { 
         email: verificationEmail, 
         code: verificationCode 
       });
@@ -177,7 +177,7 @@ function App() {
       
       // Email doğrulandıktan sonra otomatik login yap
       try {
-        const loginRes = await axios.post('/api/auth/login', {
+        const loginRes = await axios.post('https://verxiel.onrender.com/api/auth/login', {
           email: verificationEmail,
           password: verificationPassword // Saklanan password'ü kullan
         });
@@ -205,7 +205,7 @@ function App() {
   // Email doğrulama kodu yeniden gönder
   const resendVerificationCode = async () => {
     try {
-      await axios.post('/api/auth/resend-code', { 
+      await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { 
         email: verificationEmail 
       });
       setMessage('Doğrulama kodu yeniden gönderildi!');
@@ -217,7 +217,7 @@ function App() {
   // Email doğrulama kodu gönder
   const sendVerificationCode = async (email) => {
     try {
-      const res = await axios.post('/api/auth/resend-code', { 
+      const res = await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { 
         email: email 
       });
       console.log('Backend response:', res.data);

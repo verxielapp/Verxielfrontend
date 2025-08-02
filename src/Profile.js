@@ -11,7 +11,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
   const [addUsername, setAddUsername] = useState('');
 
   useEffect(() => {
-    axios.get('/api/auth/me', {
+    axios.get('https://verxiel.onrender.com/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       setProfile(res.data);
@@ -21,7 +21,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       console.error('Profile fetch error:', err);
     });
     // Kişi listesini çek
-    axios.get('/api/auth/contacts', {
+    axios.get('https://verxiel.onrender.com/api/auth/contacts', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       const contactsData = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.contacts) ? res.data.contacts : []);
@@ -37,7 +37,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
   const update = async e => {
     e.preventDefault();
     try {
-      const res = await axios.put('/api/auth/me', { displayName, avatarUrl }, {
+      const res = await axios.put('https://verxiel.onrender.com/api/auth/me', { displayName, avatarUrl }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProfile(res.data);

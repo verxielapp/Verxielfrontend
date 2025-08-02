@@ -13,7 +13,7 @@ const QRLogin = ({ onLoginSuccess, onBackToLogin }) => {
     const startQRCheck = useCallback((qrCodeData) => {
         intervalRef.current = setInterval(async () => {
             try {
-                const response = await axios.post('/api/qr/qr-login', {
+                const response = await axios.post('https://verxiel.onrender.com/api/qr/qr-login', {
                     qrCode: qrCodeData
                 });
 
@@ -56,7 +56,7 @@ const QRLogin = ({ onLoginSuccess, onBackToLogin }) => {
             setError('');
             setStatus('Generating QR code...');
 
-            const response = await axios.post('/api/qr/generate-qr');
+            const response = await axios.post('https://verxiel.onrender.com/api/qr/generate-qr');
             
             if (response.data.success) {
                 setQrCode(response.data.qrCode);

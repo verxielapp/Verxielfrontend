@@ -29,7 +29,7 @@ export default function Chat({ token, user, contact, addContact }) {
 
   useEffect(() => {
     if (!token || !user || !contact) return;
-    axios.get('/api/messages', {
+    axios.get('https://verxiel.onrender.com/api/messages', {
       params: { userId: user.id, to: contact._id },
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
