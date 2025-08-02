@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const SOCKET_URL = 'https://verxiel.onrender.com';
+const SOCKET_URL = window.location.origin;
 
 export default function Chat({ token, user, contact, addContact }) {
   const [messages, setMessages] = useState([]);
@@ -21,11 +21,11 @@ export default function Chat({ token, user, contact, addContact }) {
   const localVideoRef = useRef();
   const remoteVideoRef = useRef();
 
-  // Kişi ekleme modalı için state
-  const [showAddContact, setShowAddContact] = useState(false);
-  const [addEmail, setAddEmail] = useState('');
-  const [addUsername, setAddUsername] = useState('');
-  const [addContactMsg, setAddContactMsg] = useState('');
+  // Kişi ekleme modalı için state (şimdilik kullanılmıyor)
+  // const [showAddContact, setShowAddContact] = useState(false);
+  // const [addEmail, setAddEmail] = useState('');
+  // const [addUsername, setAddUsername] = useState('');
+  // const [addContactMsg, setAddContactMsg] = useState('');
 
   useEffect(() => {
     if (!token || !user || !contact) return;
@@ -34,15 +34,17 @@ export default function Chat({ token, user, contact, addContact }) {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       setMessages(res.data);
+    }).catch(err => {
+      console.error('Messages fetch error:', err);
     });
     socketRef.current = io(SOCKET_URL, {
       auth: { token }
     });
     socketRef.current.on('message', msg => {
-      const myId = user.id?.toString?.() || user.id;
-      const contactId = contact._id?.toString?.() || contact._id;
-      const fromId = msg.from?._id?.toString?.() || msg.from;
-      const toId = msg.to?._id?.toString?.() || msg.to;
+          const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+    const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
+    const toId = (msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
       if ((fromId === myId && toId === contactId) || (fromId === contactId && toId === myId)) {
         setMessages(prev => [...prev, msg]);
       }
@@ -63,6 +65,7 @@ export default function Chat({ token, user, contact, addContact }) {
     socketRef.current.on('call-end', () => {
       endCall();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       socketRef.current.disconnect();
     };
@@ -77,8 +80,8 @@ export default function Chat({ token, user, contact, addContact }) {
   const sendMessage = e => {
     e.preventDefault();
     if (!input.trim()) return;
-    const myId = user.id?.toString?.() || user.id;
-    const contactId = contact._id?.toString?.() || contact._id;
+    const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
     // Mesajı local olarak ekle
     setMessages(prev => [...prev, {
       from: { _id: myId, displayName: user.displayName },
@@ -111,7 +114,7 @@ export default function Chat({ token, user, contact, addContact }) {
     // Offer oluştur ve gönder
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    socketRef.current.emit('call-offer', { to: contact._id, offer, type });
+    socketRef.current.emit('call-offer', { to: contact.id || contact._id, offer, type });
   };
 
   // Gelen aramayı kabul et
@@ -152,7 +155,7 @@ export default function Chat({ token, user, contact, addContact }) {
       pcRef.current.close();
       pcRef.current = null;
     }
-    socketRef.current.emit('call-end', { to: contact._id });
+    socketRef.current.emit('call-end', { to: contact.id || contact._id });
   };
 
   // Video elementlerini güncelle
@@ -167,24 +170,24 @@ export default function Chat({ token, user, contact, addContact }) {
     }
   }, [remoteStream]);
 
-  // Kişi ekle fonksiyonu
-  const handleAddContact = async (e) => {
-    e.preventDefault();
-    setAddContactMsg('');
-    try {
-      await addContact({ email: addEmail, username: addUsername });
-      setAddEmail('');
-      setAddUsername('');
-      setAddContactMsg('Kişi eklendi!');
-      setTimeout(() => setShowAddContact(false), 800);
-    } catch {
-      setAddContactMsg('Kişi eklenemedi!');
-    }
-  };
+  // Kişi ekle fonksiyonu (şimdilik kullanılmıyor)
+  // const handleAddContact = async (e) => {
+  //   e.preventDefault();
+  //   setAddContactMsg('');
+  //   try {
+  //     await addContact({ email: addEmail, username: addUsername });
+  //     setAddEmail('');
+  //     setAddUsername('');
+  //     setAddContactMsg('Kişi eklendi!');
+  //     setTimeout(() => setShowAddContact(false), 800);
+  //   } catch {
+  //     setAddContactMsg('Kişi eklenemedi!');
+  //   }
+  // };
 
-  // Sesli ve görüntülü arama fonksiyonları (şimdilik alert)
-  const handleVoiceCall = () => alert('Sesli arama yakında!');
-  const handleVideoCall = () => alert('Görüntülü arama yakında!');
+  // Sesli ve görüntülü arama fonksiyonları (şimdilik kullanılmıyor)
+  // const handleVoiceCall = () => alert('Sesli arama yakında!');
+  // const handleVideoCall = () => alert('Görüntülü arama yakında!');
 
   return (
     <div style={{ maxWidth: 600, height: '100%', minHeight: 0, margin: 'auto', marginTop: 10, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001', display: 'flex', flexDirection: 'column', padding: 0 }}>
@@ -234,10 +237,18 @@ export default function Chat({ token, user, contact, addContact }) {
       </div>
       <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
         {messages.map((msg, i) => {
-          const myId = user.id?.toString?.() || user.id;
-          const fromId = msg.from?._id?.toString?.() || msg.from;
+          const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+          const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
           const isMe = fromId === myId;
-          const name = isMe ? 'Sen' : (msg.from?.displayName || msg.from?.username || msg.from?.email || 'Bilinmiyor');
+          // Kişi listesinde yoksa 'Bilinmeyen Kişi'
+          let name = 'Bilinmeyen Kişi';
+          if (isMe) {
+            name = 'Sen';
+          } else if (contact && (fromId === (contact.id || contact._id))) {
+            name = contact.displayName || contact.username || contact.email || 'Bilinmeyen Kişi';
+          } else if (msg.from?.displayName || msg.from?.username || msg.from?.email) {
+            name = msg.from.displayName || msg.from.username || msg.from.email;
+          }
           return (
             <div key={i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ textAlign: isMe ? 'right' : 'left', margin: '2px 0' }}>
               <b>{name}</b>: {msg.content}

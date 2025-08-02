@@ -17,6 +17,8 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       setProfile(res.data);
       setDisplayName(res.data.displayName);
       setAvatarUrl(res.data.avatarUrl || '');
+    }).catch(err => {
+      console.error('Profile fetch error:', err);
     });
     // Kişi listesini çek
     axios.get('https://verxiel.onrender.com/api/auth/contacts', {
@@ -24,7 +26,10 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
     }).then(res => {
       setContacts(res.data);
       if (onContactsChange) onContactsChange(res.data);
+    }).catch(err => {
+      console.error('Contacts fetch error:', err);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const update = async e => {
@@ -35,7 +40,8 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       });
       setProfile(res.data);
       setMsg('Profil güncellendi!');
-    } catch {
+    } catch (err) {
+      console.error('Profile update error:', err);
       setMsg('Hata!');
     }
   };
@@ -68,7 +74,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       <h4>Kişiler</h4>
       <ul>
         {contacts.map(c => (
-          <li key={c?._id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <li key={c?.id || c?._id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {c?.avatarUrl ? (
               <img src={c.avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
@@ -77,7 +83,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
               </div>
             )}
             <span>{c?.displayName || 'Bilinmiyor'} ({c?.email || 'Bilinmiyor'})</span>
-            <button onClick={() => deleteContact(c?._id)} style={{ marginLeft: 8, color: 'red' }}>Sil</button>
+            <button onClick={() => deleteContact(c?.id || c?._id)} style={{ marginLeft: 8, color: 'red' }}>Sil</button>
           </li>
         ))}
       </ul>
