@@ -2,11 +2,12 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const SOCKET_URL = window.location.origin;
+const SOCKET_URL = 'https://verxiel.onrender.com';
 
 export default function Chat({ token, user, contact, addContact }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef();
   const scrollRef = useRef();
 
@@ -29,23 +30,50 @@ export default function Chat({ token, user, contact, addContact }) {
 
   useEffect(() => {
     if (!token || !user || !contact) return;
+    
+    console.log('Chat: Loading messages for contact:', contact);
+    
+    // Mesajları yükle
     axios.get('https://verxiel.onrender.com/api/messages', {
       params: { userId: user.id, to: contact._id },
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       const messagesData = Array.isArray(res.data) ? res.data : [];
+      console.log('Messages loaded:', messagesData);
       setMessages(messagesData);
     }).catch(err => {
       console.error('Messages fetch error:', err);
     });
+    
+    // Socket bağlantısı
+    console.log('Connecting to socket:', SOCKET_URL);
     socketRef.current = io(SOCKET_URL, {
-      auth: { token }
+      auth: { token },
+      transports: ['websocket', 'polling']
     });
+    
+    socketRef.current.on('connect', () => {
+      console.log('Socket connected!');
+      setIsConnected(true);
+    });
+    
+    socketRef.current.on('disconnect', () => {
+      console.log('Socket disconnected!');
+      setIsConnected(false);
+    });
+    
+    socketRef.current.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setIsConnected(false);
+    });
+    
     socketRef.current.on('message', msg => {
-          const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
-    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
-    const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
-    const toId = (msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
+      console.log('Received message:', msg);
+      const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+      const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+      const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
+      const toId = (msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
+      
       if ((fromId === myId && toId === contactId) || (fromId === contactId && toId === myId)) {
         setMessages(prev => [...prev, msg]);
       }
@@ -80,16 +108,36 @@ export default function Chat({ token, user, contact, addContact }) {
 
   const sendMessage = e => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !isConnected) return;
+    
     const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
     const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+    
+    console.log('Sending message:', {
+      from: myId,
+      to: contactId,
+      content: input
+    });
+    
     // Mesajı local olarak ekle
-    setMessages(prev => [...prev, {
+    const newMessage = {
       from: { _id: myId, displayName: user.displayName },
       to: { _id: contactId, displayName: contact.displayName },
-      content: input
-    }]);
-    socketRef.current.emit('message', { content: input, to: contact._id });
+      content: input,
+      timestamp: new Date().toISOString()
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Socket ile mesaj gönder
+    if (socketRef.current && isConnected) {
+      socketRef.current.emit('message', { 
+        content: input, 
+        to: contactId,
+        from: myId
+      });
+    }
+    
     setInput('');
   };
 
@@ -191,49 +239,26 @@ export default function Chat({ token, user, contact, addContact }) {
   // const handleVideoCall = () => alert('Görüntülü arama yakında!');
 
   return (
-    <div style={{ maxWidth: 600, height: '100%', minHeight: 0, margin: 'auto', marginTop: 10, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001', display: 'flex', flexDirection: 'column', padding: 0 }}>
-      {/* Arama ekranı */}
-      {inCall && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-          <div style={{ background: '#222', color: '#fff', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div>{callType === 'video' ? 'Görüntülü Arama' : 'Sesli Arama'}</div>
-            <div style={{ display: 'flex', gap: 16 }}>
-              {callType === 'video' && <video ref={remoteVideoRef} autoPlay playsInline style={{ width: 240, height: 180, background: '#111', borderRadius: 8 }} />}
-              <audio ref={remoteVideoRef} autoPlay hidden={callType === 'video'} />
-              {callType === 'video' && <video ref={localVideoRef} autoPlay playsInline muted style={{ width: 120, height: 90, background: '#222', borderRadius: 8, position: 'absolute', right: 32, bottom: 32, border: '2px solid #a259e6' }} />}
-              <audio ref={localVideoRef} autoPlay muted hidden={callType === 'video'} />
-            </div>
-            <button onClick={endCall} style={{ background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 'bold', fontSize: 18, marginTop: 16 }}>Kapat</button>
-          </div>
-        </div>
-      )}
-      {/* Gelen arama modalı */}
-      {callModal && callIncoming && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0008', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 2px 16px #0003', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div><b>{callIncoming.from.displayName || callIncoming.from.username || callIncoming.from.email}</b> sizi arıyor ({callIncoming.type === 'video' ? 'Görüntülü' : 'Sesli'})</div>
-            <div style={{ display: 'flex', gap: 16 }}>
-              <button onClick={acceptCall} style={{ background: '#25d366', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 'bold', fontSize: 18 }}>Kabul Et</button>
-              <button onClick={endCall} style={{ background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 'bold', fontSize: 18 }}>Reddet</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Başlık ve arama başlatma butonları */}
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #eee', padding: '8px 12px', gap: 12, justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div className="chat-container">
+      <div className="chat-header">
+        <div className="chat-contact-info">
           {contact?.avatarUrl ? (
-            <img src={contact.avatarUrl} alt="avatar" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+            <img src={contact.avatarUrl} alt="avatar" className="chat-contact-avatar" />
           ) : (
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 20 }}>
+            <div className="chat-contact-avatar-placeholder">
               {(contact?.displayName?.[0]?.toUpperCase()) || '?'}
             </div>
           )}
-          <span style={{ fontWeight: 'bold', fontSize: 18 }}>{contact?.displayName || 'Bilinmiyor'}</span>
+          <div className="chat-contact-details">
+            <span className="chat-contact-name">{contact?.displayName || 'Bilinmiyor'}</span>
+            <span className="chat-contact-status">
+              {isConnected ? '🟢 Çevrimiçi' : '🔴 Bağlantı yok'}
+            </span>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={() => startCall('audio')} style={{ background: 'none', border: 'none', color: '#a259e6', fontSize: 22, cursor: 'pointer' }} title="Sesli Arama">🔊</button>
-          <button onClick={() => startCall('video')} style={{ background: 'none', border: 'none', color: '#a259e6', fontSize: 22, cursor: 'pointer' }} title="Görüntülü Arama">📹</button>
+        <div className="chat-actions">
+          <button onClick={() => startCall('audio')} className="chat-call-btn">📞</button>
+          <button onClick={() => startCall('video')} className="chat-call-btn">📹</button>
         </div>
       </div>
       <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>

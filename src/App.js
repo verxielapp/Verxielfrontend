@@ -27,6 +27,7 @@ function App() {
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationPassword, setVerificationPassword] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showUnknownChat, setShowUnknownChat] = useState(false);
 
   // Oturum bilgisini localStorage'dan yükle
   useEffect(() => {
@@ -113,6 +114,45 @@ function App() {
       if (selectedContact && (selectedContact.id || selectedContact._id) === contactId) setSelectedContact(updated[0] || null);
     } catch (err) {
       console.error('Delete contact error:', err);
+    }
+  };
+
+  // Bilinmeyen kişi ile mesajlaşma başlat
+  const startChatWithUnknown = async (email) => {
+    try {
+      // Önce kişiyi bul
+      const res = await axios.get('https://verxiel.onrender.com/api/auth/find', {
+        params: { email },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data) {
+        const unknownContact = res.data;
+        // Kişi listede var mı kontrol et
+        const existingContact = contacts.find(c => (c.id || c._id) === (unknownContact.id || unknownContact._id));
+        
+        if (!existingContact) {
+          // Kişiyi listeye ekle
+          await addContact(email);
+          // Yeni eklenen kişiyi seç
+          setSelectedContact(unknownContact);
+        } else {
+          // Zaten listede, direkt seç
+          setSelectedContact(existingContact);
+        }
+      }
+    } catch (err) {
+      console.error('Start chat with unknown error:', err);
+      // Eğer kişi bulunamazsa, geçici bir contact objesi oluştur
+      const tempContact = {
+        id: 'temp_' + Date.now(),
+        _id: 'temp_' + Date.now(),
+        displayName: email.split('@')[0],
+        email: email,
+        avatarUrl: '',
+        isTemporary: true
+      };
+      setSelectedContact(tempContact);
     }
   };
 
@@ -297,7 +337,10 @@ function App() {
           <div className="app-sidebar">
             <div className="app-sidebar-header">
               <h4>Kişiler</h4>
-              <button onClick={() => setShowAddContact(true)} className="app-add-contact-btn">+</button>
+              <div className="app-sidebar-buttons">
+                <button onClick={() => setShowAddContact(true)} className="app-add-contact-btn">+</button>
+                <button onClick={() => setShowUnknownChat(true)} className="app-unknown-chat-btn">💬</button>
+              </div>
             </div>
             <ul className="app-contacts-list">
               {(Array.isArray(contacts) ? contacts : []).map(c => (
@@ -338,6 +381,34 @@ function App() {
                       {addContactMsg}
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+            
+            {/* Bilinmeyen kişi ile mesajlaşma modalı */}
+            {showUnknownChat && (
+              <div className="app-add-contact-modal-overlay">
+                <div className="app-add-contact-modal-content">
+                  <h3>Bilinmeyen Kişi ile Mesajlaş</h3>
+                  <input
+                    type="email"
+                    placeholder="Email adresi"
+                    value={addEmail}
+                    onChange={(e) => setAddEmail(e.target.value)}
+                    className="app-add-contact-input"
+                  />
+                  <div className="app-add-contact-buttons">
+                    <button onClick={() => {
+                      startChatWithUnknown(addEmail);
+                      setShowUnknownChat(false);
+                      setAddEmail('');
+                    }} className="app-add-contact-btn-primary">
+                      Mesajlaş
+                    </button>
+                    <button onClick={() => setShowUnknownChat(false)} className="app-add-contact-btn-secondary">
+                      İptal
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
