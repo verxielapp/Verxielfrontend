@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Chat from './Chat';
 import Profile from './Profile';
@@ -51,10 +51,10 @@ function App() {
     if (token) {
       loadContacts();
     }
-  }, [token]);
+  }, [token, loadContacts]);
 
   // Kişi listesini yükle
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     try {
       const res = await axios.get('https://verxiel.onrender.com/api/auth/contacts', {
         headers: { Authorization: `Bearer ${token}` }
@@ -67,12 +67,12 @@ function App() {
     } catch (err) {
       console.error('Load contacts error:', err);
     }
-  };
+  }, [token, selectedContact]);
 
   // Kişi ekle
   const addContact = async (email) => {
     try {
-      const res = await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
+      await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAddContactMsg('Kişi eklendi!');
@@ -165,7 +165,7 @@ function App() {
   const handleEmailVerification = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { 
+      await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { 
         email: verificationEmail, 
         code: verificationCode 
       });
@@ -257,7 +257,7 @@ function App() {
     e.preventDefault();
     setAddContactMsg('');
     try {
-      await addContact({ email: addEmail, username: addUsername });
+      await addContact(addEmail);
       setAddEmail('');
       setAddUsername('');
       setAddContactMsg('Kişi eklendi!');
