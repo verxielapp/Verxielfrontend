@@ -50,6 +50,50 @@ function App() {
     }
   }, [token, user]);
 
+  // Token geçerliliğini kontrol et
+  const verifyToken = async (tokenToVerify) => {
+    try {
+      const res = await axios.get('https://verxiel.onrender.com/api/verify-token', {
+        headers: { Authorization: `Bearer ${tokenToVerify}` }
+      });
+      console.log('Token verification result:', res.data);
+      return res.data.valid;
+    } catch (err) {
+      console.error('Token verification failed:', err.response?.data || err.message);
+      return false;
+    }
+  };
+
+  // Token kontrolü ve geçerlilik doğrulama
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      
+      console.log('Debug - Saved token:', savedToken ? savedToken.substring(0, 20) + '...' : 'NO TOKEN');
+      console.log('Debug - Saved user:', savedUser);
+      
+      if (savedToken && savedUser) {
+        console.log('Checking token validity...');
+        const isValid = await verifyToken(savedToken);
+        
+        if (isValid) {
+          console.log('Token is valid, setting user data');
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        } else {
+          console.log('Token is invalid, clearing data');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setToken('');
+          setUser(null);
+        }
+      }
+    };
+    
+    checkTokenValidity();
+  }, []);
+
   // Kişi listesini yükle
   const loadContacts = useCallback(async () => {
     if (!token) {
