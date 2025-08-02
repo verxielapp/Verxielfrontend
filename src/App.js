@@ -18,7 +18,7 @@ function App() {
   const [username, setUsername] = useState('');
   const [showAddContact, setShowAddContact] = useState(false);
   const [addEmail, setAddEmail] = useState('');
-  const [addUsername, setAddUsername] = useState('');
+
   const [addContactMsg, setAddContactMsg] = useState('');
   const [showQRLogin, setShowQRLogin] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
@@ -47,12 +47,6 @@ function App() {
     }
   }, [token, user]);
 
-  useEffect(() => {
-    if (token) {
-      loadContacts();
-    }
-  }, [token, loadContacts]);
-
   // Kişi listesini yükle
   const loadContacts = useCallback(async () => {
     try {
@@ -68,6 +62,12 @@ function App() {
       console.error('Load contacts error:', err);
     }
   }, [token, selectedContact]);
+
+  useEffect(() => {
+    if (token) {
+      loadContacts();
+    }
+  }, [token, loadContacts]);
 
   // Kişi ekle
   const addContact = async (email) => {
@@ -252,20 +252,7 @@ function App() {
     alert('Ayarlar yakında!');
   };
 
-  // Kişi ekle fonksiyonunu güncelle
-  const handleAddContact = async (e) => {
-    e.preventDefault();
-    setAddContactMsg('');
-    try {
-      await addContact(addEmail);
-      setAddEmail('');
-      setAddUsername('');
-      setAddContactMsg('Kişi eklendi!');
-      setTimeout(() => setShowAddContact(false), 800);
-    } catch {
-      setAddContactMsg('Kişi eklenemedi!');
-    }
-  };
+
 
   // Eğer token varsa sohbet ve profil ekranını göster
   if (token) {

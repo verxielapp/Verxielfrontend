@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
@@ -144,7 +144,7 @@ export default function Chat({ token, user, contact, addContact }) {
   };
 
   // Aramayı bitir
-  const endCall = () => {
+  const endCall = useCallback(() => {
     setInCall(false);
     setCallType(null);
     setCallModal(false);
@@ -156,7 +156,7 @@ export default function Chat({ token, user, contact, addContact }) {
       pcRef.current = null;
     }
     socketRef.current.emit('call-end', { to: contact.id || contact._id });
-  };
+  }, [contact.id, contact._id]);
 
   // Video elementlerini güncelle
   useEffect(() => {
