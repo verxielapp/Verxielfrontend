@@ -14,11 +14,14 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
     axios.get('https://verxiel.onrender.com/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
-      setProfile(res.data);
-      setDisplayName(res.data.displayName);
-      setAvatarUrl(res.data.avatarUrl || '');
+      if (res.data) {
+        setProfile(res.data);
+        setDisplayName(res.data.displayName || '');
+        setAvatarUrl(res.data.avatarUrl || '');
+      }
     }).catch(err => {
       console.error('Profile fetch error:', err);
+      setProfile(null);
     });
     // Kişi listesini çek
     axios.get('https://verxiel.onrender.com/api/auth/contacts', {

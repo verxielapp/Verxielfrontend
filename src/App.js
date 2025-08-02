@@ -26,6 +26,7 @@ function App() {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationPassword, setVerificationPassword] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
 
   // Oturum bilgisini localStorage'dan yükle
   useEffect(() => {
@@ -64,6 +65,10 @@ function App() {
     } catch (err) {
       console.error('Load contacts error:', err);
       setContacts([]); // Hata durumunda boş array
+      // Eğer 500 hatası varsa, kullanıcıyı bilgilendir
+      if (err.response?.status === 500) {
+        console.log('Backend sunucu hatası - Lütfen daha sonra tekrar deneyin');
+      }
     }
   }, [token, selectedContact]);
 
@@ -253,9 +258,13 @@ function App() {
 
   // Ayarlar butonu için örnek fonksiyon
   const handleSettings = () => {
-    alert('Ayarlar yakında!');
+    setShowSettings(true);
   };
 
+  // Ayarlar modalını kapat
+  const closeSettings = () => {
+    setShowSettings(false);
+  };
 
 
   // Eğer token varsa sohbet ve profil ekranını göster
@@ -335,6 +344,136 @@ function App() {
             <Profile token={token} onContactsChange={setContacts} addContact={addContact} deleteContact={deleteContact} />
           </div>
         </div>
+        
+        {/* Ayarlar Modalı */}
+        {showSettings && (
+          <div className="app-settings-modal-overlay">
+            <div className="app-settings-modal-content">
+              <div className="app-settings-header">
+                <h2>Ayarlar</h2>
+                <button onClick={closeSettings} className="app-settings-close-btn">×</button>
+              </div>
+              
+              <div className="app-settings-sections">
+                {/* Profil Ayarları */}
+                <div className="app-settings-section">
+                  <h3>👤 Profil</h3>
+                  <div className="app-settings-item">
+                    <span>Kullanıcı Adı:</span>
+                    <span className="app-settings-value">{user?.username || 'Belirtilmemiş'}</span>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>E-posta:</span>
+                    <span className="app-settings-value">{user?.email}</span>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Görünen Ad:</span>
+                    <span className="app-settings-value">{user?.displayName || 'Belirtilmemiş'}</span>
+                  </div>
+                </div>
+
+                {/* Bildirim Ayarları */}
+                <div className="app-settings-section">
+                  <h3>🔔 Bildirimler</h3>
+                  <div className="app-settings-item">
+                    <span>Mesaj Bildirimleri</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Arama Bildirimleri</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Ses Efektleri</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Gizlilik Ayarları */}
+                <div className="app-settings-section">
+                  <h3>🔒 Gizlilik</h3>
+                  <div className="app-settings-item">
+                    <span>Çevrimiçi Durumu</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Son Görülme</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Profil Fotoğrafı</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Uygulama Ayarları */}
+                <div className="app-settings-section">
+                  <h3>⚙️ Uygulama</h3>
+                  <div className="app-settings-item">
+                    <span>Otomatik Giriş</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" defaultChecked />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Karanlık Tema</span>
+                    <label className="app-settings-toggle">
+                      <input type="checkbox" />
+                      <span className="app-settings-slider"></span>
+                    </label>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>Dil</span>
+                    <select className="app-settings-select" defaultValue="tr">
+                      <option value="tr">Türkçe</option>
+                      <option value="en">English</option>
+                      <option value="de">Deutsch</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Hesap İşlemleri */}
+                <div className="app-settings-section">
+                  <h3>💼 Hesap</h3>
+                  <button className="app-settings-btn app-settings-btn-secondary">
+                    🔑 Şifre Değiştir
+                  </button>
+                  <button className="app-settings-btn app-settings-btn-secondary">
+                    📧 E-posta Değiştir
+                  </button>
+                  <button className="app-settings-btn app-settings-btn-danger">
+                    🗑️ Hesabı Sil
+                  </button>
+                </div>
+              </div>
+
+              <div className="app-settings-footer">
+                <button onClick={closeSettings} className="app-settings-btn app-settings-btn-primary">
+                  Kapat
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

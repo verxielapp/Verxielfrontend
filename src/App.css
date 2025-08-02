@@ -1043,3 +1043,284 @@ body {
   font-size: 14px;
   font-weight: bold;
 }
+
+/* Settings Modal Styles */
+.app-settings-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+}
+
+.app-settings-modal-content {
+  background: white;
+  border-radius: 24px;
+  width: 90vw;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  animation: settingsSlideIn 0.4s ease;
+}
+
+@keyframes settingsSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.app-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 2px solid #f0f0f0;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 24px 24px 0 0;
+}
+
+.app-settings-header h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #333;
+  margin: 0;
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-settings-close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #666;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.app-settings-close-btn:hover {
+  background: rgba(162, 89, 230, 0.1);
+  color: #a259e6;
+  transform: rotate(90deg);
+}
+
+.app-settings-sections {
+  padding: 32px;
+}
+
+.app-settings-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #fafafa;
+  border-radius: 16px;
+  border: 1px solid #e1e5e9;
+}
+
+.app-settings-section h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.app-settings-item:last-child {
+  border-bottom: none;
+}
+
+.app-settings-item span:first-child {
+  font-weight: 600;
+  color: #333;
+}
+
+.app-settings-value {
+  color: #666;
+  font-weight: 500;
+}
+
+/* Toggle Switch */
+.app-settings-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.app-settings-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.app-settings-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.app-settings-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.app-settings-toggle input:checked + .app-settings-slider {
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+}
+
+.app-settings-toggle input:checked + .app-settings-slider:before {
+  transform: translateX(26px);
+}
+
+/* Select Dropdown */
+.app-settings-select {
+  padding: 8px 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.app-settings-select:focus {
+  outline: none;
+  border-color: #a259e6;
+  box-shadow: 0 0 0 3px rgba(162, 89, 230, 0.1);
+}
+
+/* Settings Buttons */
+.app-settings-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.app-settings-btn-primary {
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+  color: white;
+  box-shadow: 0 4px 15px rgba(162, 89, 230, 0.3);
+}
+
+.app-settings-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.4);
+}
+
+.app-settings-btn-secondary {
+  background: #f8f9fa;
+  color: #666;
+  border: 2px solid #e1e5e9;
+}
+
+.app-settings-btn-secondary:hover {
+  background: #e9ecef;
+  border-color: #a259e6;
+  color: #a259e6;
+  transform: translateY(-1px);
+}
+
+.app-settings-btn-danger {
+  background: #ff4d4f;
+  color: white;
+  border: 2px solid #ff4d4f;
+}
+
+.app-settings-btn-danger:hover {
+  background: #ff7875;
+  border-color: #ff7875;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 77, 79, 0.3);
+}
+
+.app-settings-footer {
+  padding: 24px 32px;
+  border-top: 2px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 0 0 24px 24px;
+  text-align: center;
+}
+
+/* Responsive Design for Settings */
+@media (max-width: 768px) {
+  .app-settings-modal-content {
+    width: 95vw;
+    max-height: 90vh;
+    margin: 20px;
+  }
+  
+  .app-settings-header {
+    padding: 20px 24px;
+  }
+  
+  .app-settings-header h2 {
+    font-size: 24px;
+  }
+  
+  .app-settings-sections {
+    padding: 24px;
+  }
+  
+  .app-settings-section {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .app-settings-footer {
+    padding: 20px 24px;
+  }
+}
