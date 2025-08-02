@@ -75,7 +75,7 @@ export default function Chat({ token, user, contact, addContact }) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   const sendMessage = e => {
     e.preventDefault();
