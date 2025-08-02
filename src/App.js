@@ -54,7 +54,7 @@ function App() {
         headers: { Authorization: `Bearer ${token}` }
       });
       // API'den gelen veriyi kontrol et
-      const contactsData = Array.isArray(res.data) ? res.data : [];
+      const contactsData = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.contacts) ? res.data.contacts : []);
       setContacts(contactsData);
       // İlk kişi yoksa otomatik seç
       if (!selectedContact && contactsData.length > 0) {
@@ -294,7 +294,7 @@ function App() {
               <button onClick={() => setShowAddContact(true)} style={{ background: '#a259e6', color: '#fff', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Kişi Ekle">+</button>
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {Array.isArray(contacts) && contacts.map(c => (
+              {(Array.isArray(contacts) ? contacts : []).map(c => (
                 <li key={c?.id || c?._id} className={(selectedContact?.id || selectedContact?._id) === (c?.id || c?._id) ? 'selected' : ''} style={{
                   margin: '8px 0',
                   cursor: 'pointer',

@@ -33,7 +33,8 @@ export default function Chat({ token, user, contact, addContact }) {
       params: { userId: user.id, to: contact._id },
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
-      setMessages(res.data);
+      const messagesData = Array.isArray(res.data) ? res.data : [];
+      setMessages(messagesData);
     }).catch(err => {
       console.error('Messages fetch error:', err);
     });
@@ -236,7 +237,7 @@ export default function Chat({ token, user, contact, addContact }) {
         </div>
       </div>
       <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
-        {messages.map((msg, i) => {
+        {(Array.isArray(messages) ? messages : []).map((msg, i) => {
           const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
           const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
           const isMe = fromId === myId;

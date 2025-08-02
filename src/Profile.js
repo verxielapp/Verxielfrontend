@@ -24,10 +24,12 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
     axios.get('/api/auth/contacts', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
-      setContacts(res.data);
-      if (onContactsChange) onContactsChange(res.data);
+      const contactsData = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.contacts) ? res.data.contacts : []);
+      setContacts(contactsData);
+      if (onContactsChange) onContactsChange(contactsData);
     }).catch(err => {
       console.error('Contacts fetch error:', err);
+      setContacts([]);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
@@ -73,7 +75,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       </form>
       <h4>Kişiler</h4>
       <ul>
-        {contacts.map(c => (
+        {(Array.isArray(contacts) ? contacts : []).map(c => (
           <li key={c?.id || c?._id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {c?.avatarUrl ? (
               <img src={c.avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
