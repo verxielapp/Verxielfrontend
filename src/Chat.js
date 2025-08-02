@@ -71,12 +71,11 @@ export default function Chat({ token, user, contact, addContact }) {
     };
   }, [token, user, contact]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sendMessage = e => {
     e.preventDefault();
