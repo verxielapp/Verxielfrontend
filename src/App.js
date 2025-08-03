@@ -1,63 +1,35 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import Chat from './Chat';
-import Profile from './Profile';
-import QRLogin from './QRLogin';
 import './App.css';
-// import logo from '../public/logo192.png'; // Bunu kaldır
+
+// Icons için basit emoji kullanımı
+const Icons = {
+  menu: '☰',
+  search: '🔍',
+  add: '➕',
+  chat: '💬',
+  contacts: '👥',
+  profile: '👤',
+  settings: '⚙️',
+  logout: '🚪',
+  back: '←',
+  send: '📤',
+  call: '📞',
+  close: '✕'
+};
 
 function App() {
-  const [mode, setMode] = useState('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [message, setMessage] = useState('');
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
-  const [username, setUsername] = useState('');
   const [showAddContact, setShowAddContact] = useState(false);
   const [addEmail, setAddEmail] = useState('');
-
   const [addContactMsg, setAddContactMsg] = useState('');
-  const [showQRLogin, setShowQRLogin] = useState(false);
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [verificationPassword, setVerificationPassword] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [showUnknownChat, setShowUnknownChat] = useState(false);
-
-  // Oturum bilgisini localStorage'dan yükle
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
-
-  // Token veya user değişince localStorage'a kaydet
-  useEffect(() => {
-    if (token && user) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    }
-  }, [token, user]);
-
-  // LocalStorage'ı temizle
-  const clearLocalStorage = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken('');
-    setUser(null);
-    console.log('LocalStorage temizlendi');
-  };
+  const [showProfile, setShowProfile] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'contacts', 'profile'
 
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
@@ -82,7 +54,16 @@ function App() {
     }
   };
 
-  // Token kontrolü ve geçerlilik doğrulama
+  // LocalStorage'ı temizle
+  const clearLocalStorage = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken('');
+    setUser(null);
+    console.log('LocalStorage temizlendi');
+  };
+
+  // Token geçerliliğini kontrol et
   useEffect(() => {
     const checkTokenValidity = async () => {
       const savedToken = localStorage.getItem('token');
@@ -189,641 +170,513 @@ function App() {
     }
   };
 
-  // Bilinmeyen kişi ile mesajlaşma başlat
+  // Bilinmeyen kişi ile sohbet başlat
   const startChatWithUnknown = async (email) => {
     try {
-      // Önce kişiyi bul
-      const res = await axios.get('https://verxiel.onrender.com/api/auth/find', {
-        params: { email },
+      // Önce kişiyi eklemeye çalış
+      await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (res.data) {
-        const unknownContact = res.data;
-        // Kişi listede var mı kontrol et
-        const existingContact = contacts.find(c => (c.id || c._id) === (unknownContact.id || unknownContact._id));
-        
-        if (!existingContact) {
-          // Kişiyi listeye ekle
-          await addContact(email);
-          // Yeni eklenen kişiyi seç
-          setSelectedContact(unknownContact);
-        } else {
-          // Zaten listede, direkt seç
-          setSelectedContact(existingContact);
-        }
+      // Kişi listesini yenile
+      await loadContacts();
+      
+      // Eklenen kişiyi bul ve seç
+      const newContact = contacts.find(c => c.email === email);
+      if (newContact) {
+        setSelectedContact(newContact);
       }
+      
+      setAddEmail('');
+      setShowAddContact(false);
     } catch (err) {
-      console.error('Start chat with unknown error:', err);
-      // Eğer kişi bulunamazsa, geçici bir contact objesi oluştur
-      const tempContact = {
-        id: 'temp_' + Date.now(),
-        _id: 'temp_' + Date.now(),
-        displayName: email.split('@')[0],
-        email: email,
-        avatarUrl: '',
-        isTemporary: true
-      };
-      setSelectedContact(tempContact);
+      // Eğer kişi zaten varsa, direkt sohbet başlat
+      const existingContact = contacts.find(c => c.email === email);
+      if (existingContact) {
+        setSelectedContact(existingContact);
+        setAddEmail('');
+        setShowAddContact(false);
+      } else {
+        setAddContactMsg(err.response?.data?.message || 'Kişi bulunamadı!');
+      }
     }
   };
 
-  // Giriş yaptıktan sonra ilk kişiyi otomatik seç
-  useEffect(() => {
-    if (contacts.length > 0 && !selectedContact) setSelectedContact(contacts[0]);
-  }, [contacts, selectedContact]);
-
-
-
+  // Authentication
   const handleAuth = async (e) => {
     e.preventDefault();
-    setMessage('');
-    
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+
     try {
-      const endpoint = mode === 'login' ? 'https://verxiel.onrender.com/api/auth/login' : 'https://verxiel.onrender.com/api/auth/register';
-      const data = mode === 'login' ? { email, password } : { email, password, displayName, username };
+      const res = await axios.post('https://verxiel.onrender.com/api/auth/login', { email, password });
+      const { token: newToken, user: userData } = res.data;
       
-      const res = await axios.post(endpoint, data);
-      
-      if (mode === 'register') {
-        // Register işlemi
-        if (res.data.needsVerification) {
-          // Email doğrulama gerekiyor
-          setVerificationEmail(email);
-          setVerificationPassword(password); // Password'ü sakla
-          setShowEmailVerification(true);
-          setMessage('Kayıt başarılı! Email adresinizi doğrulayın.');
-        } else {
-          // Email doğrulama gerekmiyorsa direkt giriş yap
-        setMessage('Kayıt başarılı! Giriş yapabilirsiniz.');
-          setMode('login');
-          setEmail('');
-          setPassword('');
-          setDisplayName('');
-          setUsername('');
-        }
-      } else {
-        // Login işlemi
-        if (res.data.needsVerification) {
-          // Email doğrulama gerekiyor
-          setVerificationEmail(email);
-          setVerificationPassword(password); // Password'ü sakla
-          setShowEmailVerification(true);
-          setMessage('Email adresinizi doğrulamanız gerekiyor!');
-        } else {
-          // Normal login
-          localStorage.setItem('token', res.data.token);
-        setToken(res.data.token);
-          setUser(res.data.user);
-          setMessage('Giriş başarılı!');
-        }
-      }
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setToken(newToken);
+      setUser(userData);
     } catch (err) {
-      if (mode === 'login' && err.response?.data?.needsVerification) {
-        // Login'de email doğrulama gerekiyor
-        setVerificationEmail(email);
-        setVerificationPassword(password); // Password'ü sakla
-        setShowEmailVerification(true);
-        setMessage('Email adresinizi doğrulamanız gerekiyor!');
-      } else {
-        setMessage(err.response?.data?.message || 'Bir hata oluştu!');
-      }
+      console.error('Login error:', err);
+      alert(err.response?.data?.message || 'Giriş başarısız!');
     }
   };
 
-  // Email doğrulama işlemi
+  // Email verification
   const handleEmailVerification = async (e) => {
     e.preventDefault();
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const code = formData.get('code');
+
     try {
-      await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { 
-        email: verificationEmail, 
-        code: verificationCode 
-      });
+      const res = await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { email, code });
+      const { token: newToken, user: userData } = res.data;
       
-      setMessage('E-posta doğrulandı! Giriş yapılıyor...');
-      
-      // Email doğrulandıktan sonra otomatik login yap
-      try {
-        const loginRes = await axios.post('https://verxiel.onrender.com/api/auth/login', {
-          email: verificationEmail,
-          password: verificationPassword // Saklanan password'ü kullan
-        });
-        
-        localStorage.setItem('token', loginRes.data.token);
-        setToken(loginRes.data.token);
-        setUser(loginRes.data.user);
-        setShowEmailVerification(false);
-        setVerificationEmail('');
-        setVerificationCode('');
-        setVerificationPassword(''); // Password'ü temizle
-        setMessage('Giriş başarılı!');
-      } catch (loginErr) {
-        setMessage('Email doğrulandı! Şimdi giriş yapabilirsiniz.');
-        setShowEmailVerification(false);
-        setMode('login');
-        setVerificationCode('');
-        setVerificationPassword(''); // Password'ü temizle
-      }
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setToken(newToken);
+      setUser(userData);
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Doğrulama kodu hatalı!');
+      console.error('Email verification error:', err);
+      alert(err.response?.data?.message || 'Doğrulama başarısız!');
     }
   };
 
-  // Email doğrulama kodu yeniden gönder
+  // Verification code resend
   const resendVerificationCode = async () => {
+    const email = document.querySelector('input[name="email"]')?.value;
+    if (!email) {
+      alert('Lütfen email adresinizi girin!');
+      return;
+    }
+
     try {
-      await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { 
-        email: verificationEmail 
-      });
-      setMessage('Doğrulama kodu yeniden gönderildi!');
+      await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
+      alert('Doğrulama kodu tekrar gönderildi!');
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Kod gönderilemedi!');
+      alert(err.response?.data?.message || 'Kod gönderilemedi!');
     }
   };
 
-  // Email doğrulama kodu gönder
+  // Verification code send
   const sendVerificationCode = async (email) => {
     try {
-      const res = await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { 
-        email: email 
-      });
-      console.log('Backend response:', res.data);
-      setMessage('Doğrulama kodu gönderildi! Backend console\'unu kontrol edin.');
-      return true;
+      await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
+      alert('Doğrulama kodu gönderildi!');
     } catch (err) {
-      console.error('Email gönderme hatası:', err);
-      setMessage(err.response?.data?.message || 'Kod gönderilemedi!');
-      return false;
+      alert(err.response?.data?.message || 'Kod gönderilemedi!');
     }
   };
 
-  // Çıkış fonksiyonu
+  // Logout
   const handleLogout = () => {
-    setToken('');
-    setUser(null);
-    setSelectedContact(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setToken('');
+    setUser(null);
+    setContacts([]);
+    setSelectedContact(null);
   };
 
-  // QR login fonksiyonları
+  // QR Login success
   const handleQRLoginSuccess = (userData) => {
-    setUser(userData);
-    setToken(localStorage.getItem('token'));
-    setShowQRLogin(false);
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('user', JSON.stringify(userData.user));
+    setToken(userData.token);
+    setUser(userData.user);
   };
 
+  // Back to login
   const handleBackToLogin = () => {
-    setShowQRLogin(false);
+    setShowProfile(false);
   };
 
-  // Ayarlar butonu için örnek fonksiyon
+  // Settings
   const handleSettings = () => {
     setShowSettings(true);
   };
 
-  // Ayarlar modalını kapat
   const closeSettings = () => {
     setShowSettings(false);
   };
 
+  // Mobile navigation
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
-  // Eğer token varsa sohbet ve profil ekranını göster
-  if (token) {
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleMobileNav = (view) => {
+    setCurrentView(view);
+    closeMobileMenu();
+  };
+
+  // Render authentication screen
+  if (!token || !user) {
     return (
-      <div className="app-container">
-        {/* HEADER */}
-        <div className="app-header">
-          <div className="app-header-left">
-            <img src="/logo192.png" alt="Verxiel Logo" className="app-logo" />
-            <span className="app-title">Verxiel</span>
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-header">
+            <div className="auth-logo">V</div>
+            <h1 className="auth-title">Verxiel</h1>
+            <p className="auth-subtitle">Güvenli Mesajlaşma</p>
           </div>
-          <div className="app-header-right">
-            <span className="app-user-info">{user?.displayName || user?.username || user?.email || 'Kullanıcı'}</span>
-            <button onClick={handleSettings} className="app-settings-btn">⚙️</button>
-            <button onClick={handleLogout} className="app-logout-btn">Çıkış</button>
-          </div>
+          
+          <form onSubmit={handleAuth} className="auth-form">
+            <input
+              type="email"
+              name="email"
+              placeholder="E-posta"
+              required
+              className="auth-input"
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Şifre"
+              required
+              className="auth-input"
+            />
+            <button type="submit" className="auth-button">
+              Giriş Yap
+            </button>
+          </form>
+          
+          <button onClick={() => sendVerificationCode(document.querySelector('input[name="email"]')?.value)} className="auth-button secondary">
+            Email Doğrulama
+          </button>
         </div>
-        {/* ANA İÇERİK */}
-        <div className="app-content">
-          <div className="app-sidebar">
-            <div className="app-sidebar-header">
-              <h4>Kişiler</h4>
-              <div className="app-sidebar-buttons">
-                <button onClick={() => setShowAddContact(true)} className="app-add-contact-btn">+</button>
-                <button onClick={() => setShowUnknownChat(true)} className="app-unknown-chat-btn">💬</button>
-              </div>
-            </div>
-            <ul className="app-contacts-list">
-              {(Array.isArray(contacts) ? contacts : []).map(c => (
-                <li key={c?.id || c?._id} className={selectedContact?.id === (c?.id || c?._id) ? 'selected' : ''} onClick={() => setSelectedContact(c)}>
-                  {c?.avatarUrl ? (
-                    <img src={c.avatarUrl} alt="avatar" className="app-contact-avatar" />
-                  ) : (
-                    <div className="app-contact-avatar-placeholder">
-                      {(c?.displayName?.[0]?.toUpperCase()) || '?'}
-                    </div>
-                  )}
-                  <span className="app-contact-name">{c?.displayName || 'Bilinmiyor'}</span>
-                </li>
-              ))}
-            </ul>
-            {/* Kişi ekle modalı */}
-            {showAddContact && (
-              <div className="app-add-contact-modal-overlay">
-                <div className="app-add-contact-modal-content">
-                  <h3>Kişi Ekle</h3>
-                  <input
-                    type="email"
-                    placeholder="Email adresi"
-                    value={addEmail}
-                    onChange={(e) => setAddEmail(e.target.value)}
-                    className="app-add-contact-input"
-                  />
-                  <div className="app-add-contact-buttons">
-                    <button onClick={() => addContact(addEmail)} className="app-add-contact-btn-primary">
-                      Ekle
-                    </button>
-                    <button onClick={() => setShowAddContact(false)} className="app-add-contact-btn-secondary">
-                      İptal
-                    </button>
-                  </div>
-                  {addContactMsg && (
-                    <div className={`app-add-contact-message ${addContactMsg.includes('eklendi') ? 'success' : 'error'}`}>
-                      {addContactMsg}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Bilinmeyen kişi ile mesajlaşma modalı */}
-            {showUnknownChat && (
-              <div className="app-add-contact-modal-overlay">
-                <div className="app-add-contact-modal-content">
-                  <h3>Bilinmeyen Kişi ile Mesajlaş</h3>
-                  <input
-                    type="email"
-                    placeholder="Email adresi"
-                    value={addEmail}
-                    onChange={(e) => setAddEmail(e.target.value)}
-                    className="app-add-contact-input"
-                  />
-                  <div className="app-add-contact-buttons">
-                    <button onClick={() => {
-                      startChatWithUnknown(addEmail);
-                      setShowUnknownChat(false);
-                      setAddEmail('');
-                    }} className="app-add-contact-btn-primary">
-                      Mesajlaş
-                    </button>
-                    <button onClick={() => setShowUnknownChat(false)} className="app-add-contact-btn-secondary">
-                      İptal
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="app-main-content">
-            {selectedContact ? (
-              <Chat token={token} user={user} contact={selectedContact} addContact={addContact} />
-            ) : (
-              <div className="app-no-contact-message">Bir kişi seçin...</div>
-            )}
-          </div>
-          <div className="app-profile-sidebar">
-            <Profile token={token} onContactsChange={setContacts} addContact={addContact} deleteContact={deleteContact} />
-          </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-container">
+      {/* Mobile Navigation Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-nav-overlay open" onClick={closeMobileMenu}></div>
+      )}
+
+      {/* Header */}
+      <header className="app-header">
+        <div className="header-logo">
+          <img src="/logo192.png" alt="Verxiel" />
+          <span>Verxiel</span>
         </div>
         
-        {/* Ayarlar Modalı */}
-        {showSettings && (
-          <div className="app-settings-modal-overlay">
-            <div className="app-settings-modal-content">
-              <div className="app-settings-header">
-                <h2>Ayarlar</h2>
-                <button onClick={closeSettings} className="app-settings-close-btn">×</button>
-              </div>
-              
-              <div className="app-settings-sections">
-                {/* Profil Ayarları */}
-                <div className="app-settings-section">
-                  <h3>👤 Profil</h3>
-                  <div className="app-settings-item">
-                    <span>Kullanıcı Adı:</span>
-                    <span className="app-settings-value">{user?.username || 'Belirtilmemiş'}</span>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>E-posta:</span>
-                    <span className="app-settings-value">{user?.email}</span>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Görünen Ad:</span>
-                    <span className="app-settings-value">{user?.displayName || 'Belirtilmemiş'}</span>
-                  </div>
-                </div>
+        <div className="header-user">
+          <span>{user.displayName || user.email}</span>
+          <button onClick={handleSettings} className="app-settings-btn">
+            {Icons.settings}
+          </button>
+          <button onClick={handleLogout} className="app-logout-btn">
+            {Icons.logout}
+          </button>
+        </div>
+      </header>
 
-                {/* Bildirim Ayarları */}
-                <div className="app-settings-section">
-                  <h3>🔔 Bildirimler</h3>
-                  <div className="app-settings-item">
-                    <span>Mesaj Bildirimleri</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Arama Bildirimleri</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Ses Efektleri</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                </div>
+      {/* Main Content */}
+      <main className="app-main">
+        {/* Mobile Menu Toggle */}
+        <button className="mobile-nav-toggle" onClick={toggleMobileMenu}>
+          {Icons.menu}
+        </button>
 
-                {/* Gizlilik Ayarları */}
-                <div className="app-settings-section">
-                  <h3>🔒 Gizlilik</h3>
-                  <div className="app-settings-item">
-                    <span>Çevrimiçi Durumu</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Son Görülme</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Profil Fotoğrafı</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Uygulama Ayarları */}
-                <div className="app-settings-section">
-                  <h3>⚙️ Uygulama</h3>
-                  <div className="app-settings-item">
-                    <span>Otomatik Giriş</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Karanlık Tema</span>
-                    <label className="app-settings-toggle">
-                      <input type="checkbox" />
-                      <span className="app-settings-slider"></span>
-                    </label>
-                  </div>
-                  <div className="app-settings-item">
-                    <span>Dil</span>
-                    <select className="app-settings-select" defaultValue="tr">
-                      <option value="tr">Türkçe</option>
-                      <option value="en">English</option>
-                      <option value="de">Deutsch</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Hesap İşlemleri */}
-                <div className="app-settings-section">
-                  <h3>💼 Hesap</h3>
-                  <button className="app-settings-btn app-settings-btn-secondary">
-                    🔑 Şifre Değiştir
-                  </button>
-                  <button className="app-settings-btn app-settings-btn-secondary">
-                    📧 E-posta Değiştir
-                  </button>
-                  <button className="app-settings-btn app-settings-btn-danger">
-                    🗑️ Hesabı Sil
-                  </button>
-                </div>
-              </div>
-
-              <div className="app-settings-footer">
-                <button onClick={closeSettings} className="app-settings-btn app-settings-btn-primary">
-                  Kapat
-                </button>
-              </div>
-            </div>
+        {/* Sidebar */}
+        <aside className={`app-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <h4>Kişiler</h4>
+            <button onClick={() => setShowAddContact(true)} className="add-contact-btn">
+              {Icons.add}
+            </button>
           </div>
-        )}
-      </div>
-    );
-  }
-
-  // Email doğrulama ekranı
-  if (showEmailVerification) {
-    return (
-      <div className="app-auth-container">
-        <div className="app-auth-content">
-          <div className="app-auth-header">
-            <div className="app-auth-header-icon">
-              ✉️
-            </div>
-            <h2>E-posta Doğrulama</h2>
-            <p>E-posta adresinizi girin ve doğrulama kodunu alın.</p>
-          </div>
-
-          {!verificationEmail ? (
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              if (verificationEmail && verificationEmail.trim()) {
-                const success = await sendVerificationCode(verificationEmail);
-                if (success) {
-                  // Email başarıyla gönderildi, form temizlenmez
-                }
-              }
-            }}>
-              <input
-                type="email"
-                placeholder="E-posta Adresi"
-                value={verificationEmail}
-                onChange={(e) => setVerificationEmail(e.target.value)}
-                required
-                className="app-auth-input"
-              />
-              <button 
-                type="button"
-                onClick={async () => {
-                  if (verificationEmail && verificationEmail.trim()) {
-                    const success = await sendVerificationCode(verificationEmail);
-                    if (success) {
-                      // Email başarıyla gönderildi
-                    }
-                  }
+          
+          <ul className="contact-list">
+            {Array.isArray(contacts) && contacts.map(contact => (
+              <li
+                key={contact.id || contact._id}
+                className={`contact-item ${selectedContact && (selectedContact.id || selectedContact._id) === (contact.id || contact._id) ? 'selected' : ''}`}
+                onClick={() => {
+                  setSelectedContact(contact);
+                  setCurrentView('chat');
+                  closeMobileMenu();
                 }}
-                className="app-auth-btn-primary"
               >
-                📧 Doğrulama Kodu Gönder
-              </button>
-            </form>
+                {contact.avatarUrl ? (
+                  <img src={contact.avatarUrl} alt={contact.displayName} className="contact-avatar" />
+                ) : (
+                  <div className="contact-avatar-placeholder">
+                    {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
+                  </div>
+                )}
+                <div className="contact-name">{contact.displayName || contact.email}</div>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="app-main-content">
+          {currentView === 'chat' && selectedContact ? (
+            <Chat contact={selectedContact} token={token} user={user} />
+          ) : currentView === 'contacts' ? (
+            <div className="contacts-view">
+              <h2>Kişiler</h2>
+              <ul className="contact-list">
+                {Array.isArray(contacts) && contacts.map(contact => (
+                  <li key={contact.id || contact._id} className="contact-item">
+                    {contact.avatarUrl ? (
+                      <img src={contact.avatarUrl} alt={contact.displayName} className="contact-avatar" />
+                    ) : (
+                      <div className="contact-avatar-placeholder">
+                        {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
+                      </div>
+                    )}
+                    <div className="contact-name">{contact.displayName || contact.email}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : currentView === 'profile' ? (
+            <Profile user={user} contacts={contacts} token={token} onBack={handleBackToLogin} />
           ) : (
-            <>
-              <div className="app-auth-message-info">
-                <p>
-                  📧 <strong>{verificationEmail}</strong> adresine doğrulama kodu gönderildi.
-                </p>
+            <div className="no-contact-message">
+              <h2>Hoş Geldiniz!</h2>
+              <p>Bir kişi seçin veya yeni kişi ekleyin</p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <div 
+          className={`mobile-bottom-nav-item ${currentView === 'chat' ? 'active' : ''}`}
+          onClick={() => handleMobileNav('chat')}
+        >
+          <span>{Icons.chat}</span>
+          <span>Sohbet</span>
+        </div>
+        <div 
+          className={`mobile-bottom-nav-item ${currentView === 'contacts' ? 'active' : ''}`}
+          onClick={() => handleMobileNav('contacts')}
+        >
+          <span>{Icons.contacts}</span>
+          <span>Kişiler</span>
+        </div>
+        <div 
+          className={`mobile-bottom-nav-item ${currentView === 'profile' ? 'active' : ''}`}
+          onClick={() => handleMobileNav('profile')}
+        >
+          <span>{Icons.profile}</span>
+          <span>Profil</span>
+        </div>
+      </nav>
+
+      {/* Add Contact Modal */}
+      {showAddContact && (
+        <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">Kişi Ekle</h3>
+            <input
+              type="email"
+              placeholder="E-posta adresi"
+              value={addEmail}
+              onChange={(e) => setAddEmail(e.target.value)}
+              className="modal-input"
+            />
+            <div className="modal-actions">
+              <button onClick={() => addContact(addEmail)} className="modal-button primary">
+                Ekle
+              </button>
+              <button onClick={() => startChatWithUnknown(addEmail)} className="modal-button secondary">
+                Sohbet Başlat
+              </button>
+            </div>
+            {addContactMsg && <div className="modal-message">{addContactMsg}</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="app-settings-modal-overlay" onClick={closeSettings}>
+          <div className="app-settings-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="app-settings-header">
+              <h2>Ayarlar</h2>
+              <button onClick={closeSettings} className="app-settings-close-btn">
+                {Icons.close}
+              </button>
+            </div>
+            
+            <div className="app-settings-sections">
+              <div className="app-settings-section">
+                <h3>Profil Bilgileri</h3>
+                <div className="app-settings-item">
+                  <span>Ad Soyad</span>
+                  <span className="app-settings-value">{user.displayName}</span>
+                </div>
+                <div className="app-settings-item">
+                  <span>E-posta</span>
+                  <span className="app-settings-value">{user.email}</span>
+                </div>
               </div>
               
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                if (verificationCode && verificationCode.trim()) {
-                  handleEmailVerification(e);
-                }
-              }}>
-                <input
-                  type="text"
-                  placeholder="Doğrulama Kodu"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  required
-                  className="app-auth-input"
-                />
-                <button 
-                  type="button"
-                  onClick={(e) => {
-                    if (verificationCode && verificationCode.trim()) {
-                      handleEmailVerification(e);
-                    }
-                  }}
-                  className="app-auth-btn-primary"
-                >
-                  ✅ Doğrula
-                </button>
-              </form>
+              <div className="app-settings-section">
+                <h3>Bildirimler</h3>
+                <div className="app-settings-item">
+                  <span>Mesaj Bildirimleri</span>
+                  <label className="app-settings-toggle">
+                    <input type="checkbox" defaultChecked />
+                    <span className="app-settings-slider"></span>
+                  </label>
+                </div>
+                <div className="app-settings-item">
+                  <span>Ses Bildirimleri</span>
+                  <label className="app-settings-toggle">
+                    <input type="checkbox" defaultChecked />
+                    <span className="app-settings-slider"></span>
+                  </label>
+                </div>
+              </div>
               
-              <button onClick={resendVerificationCode} className="app-auth-btn-secondary">
-                🔄 Kodu Yeniden Gönder
+              <div className="app-settings-section">
+                <h3>Gizlilik</h3>
+                <div className="app-settings-item">
+                  <span>Çevrimiçi Durumu</span>
+                  <label className="app-settings-toggle">
+                    <input type="checkbox" defaultChecked />
+                    <span className="app-settings-slider"></span>
+                  </label>
+                </div>
+                <div className="app-settings-item">
+                  <span>Son Görülme</span>
+                  <label className="app-settings-toggle">
+                    <input type="checkbox" defaultChecked />
+                    <span className="app-settings-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div className="app-settings-footer">
+              <button onClick={handleLogout} className="app-settings-btn app-settings-btn-danger">
+                Çıkış Yap
               </button>
-            </>
-          )}
-
-          <button onClick={() => {
-            setShowEmailVerification(false);
-            setVerificationEmail('');
-            setVerificationCode('');
-            setVerificationPassword('');
-            setMessage('');
-          }} className="app-auth-btn-secondary">
-            ← Geri Dön
-          </button>
-
-          <div className={`app-auth-message ${message.includes('başarılı') || message.includes('gönderildi') ? 'success' : message ? 'error' : ''}`}>
-            {message}
+            </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Chat Component
+function Chat({ contact, token, user }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+
+  const sendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    const message = {
+      id: Date.now(),
+      text: newMessage,
+      sender: user.email,
+      receiver: contact.email,
+      timestamp: new Date().toISOString()
+    };
+    
+    setMessages(prev => [...prev, message]);
+    setNewMessage('');
+    
+    // Socket.io ile mesaj gönder
+    if (window.socket && isConnected) {
+      window.socket.emit('send_message', message);
+    }
+  };
+
+  return (
+    <div className="chat-container">
+      <div className="chat-header">
+        <div className="chat-contact-info">
+          {contact.avatarUrl ? (
+            <img src={contact.avatarUrl} alt={contact.displayName} className="chat-contact-avatar" />
+          ) : (
+            <div className="chat-contact-avatar-placeholder">
+              {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
+            </div>
+          )}
+          <div className="chat-contact-details">
+            <div className="chat-contact-name">{contact.displayName || contact.email}</div>
+            <div className="chat-contact-status">Çevrimiçi</div>
+          </div>
+        </div>
+        <div className="chat-actions">
+          <button className="chat-call-btn">{Icons.call}</button>
         </div>
       </div>
-    );
-  }
+      
+      <div className="chat-messages">
+        {Array.isArray(messages) && messages.map(message => (
+          <div key={message.id} className={`message ${message.sender === user.email ? 'sent' : 'received'}`}>
+            <div className="message-content">{message.text}</div>
+            <div className="message-time">{new Date(message.timestamp).toLocaleTimeString()}</div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="chat-input-container">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Mesaj yaz..."
+          className="chat-input"
+        />
+        <button onClick={sendMessage} className="chat-send-btn">
+          {Icons.send}
+        </button>
+      </div>
+    </div>
+  );
+}
 
-  // QR login gösteriliyorsa QR login ekranını göster
-  if (showQRLogin) {
-    return <QRLogin onLoginSuccess={handleQRLoginSuccess} onBackToLogin={handleBackToLogin} />;
-  }
-
-  // Giriş/kayıt ekranı
+// Profile Component
+function Profile({ user, contacts, token, onBack }) {
   return (
-    <div className="app-auth-container">
-      <div className="app-auth-content">
-        <div className="app-auth-header">
-          <div className="app-auth-header-icon">
-            {mode === 'login' ? '🔐' : '��'}
-          </div>
-          <h2>
-            {mode === 'login' ? 'Hoş Geldiniz' : 'Hesap Oluştur'}
-          </h2>
-          <p>
-            {mode === 'login' ? 'Hesabınıza giriş yapın' : 'Yeni hesabınızı oluşturun'}
-          </p>
+    <div className="profile-sidebar">
+      <div className="profile-header">
+        <h3>Profil</h3>
+        <button onClick={onBack} className="back-btn">{Icons.back}</button>
+      </div>
+      
+      <div className="profile-info">
+        <div className="profile-avatar">
+          {user.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.displayName} />
+          ) : (
+            <div className="profile-avatar-placeholder">
+              {user.displayName ? user.displayName.charAt(0).toUpperCase() : '?'}
+            </div>
+          )}
         </div>
-
-      <form onSubmit={handleAuth}>
-        <input
-          type="email"
-            placeholder="E-posta Adresi"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-            className="app-auth-input"
-        />
-        <input
-          type="password"
-          placeholder="Şifre"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-            className="app-auth-input"
-        />
-        {mode === 'register' && (
-          <>
-            <input
-              type="text"
-              placeholder="Görünen Ad"
-              value={displayName}
-              onChange={e => setDisplayName(e.target.value)}
-              required
-                className="app-auth-input"
-            />
-            <input
-              type="text"
-              placeholder="Kullanıcı Adı"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-                className="app-auth-input"
-            />
-          </>
-        )}
-          <button type="submit" className="app-auth-btn-primary">
-          {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
-        </button>
-      </form>
-
-      {mode === 'login' && (
-        <button onClick={() => setShowQRLogin(true)} className="app-auth-btn-secondary">
-            📱 QR Kod ile Giriş
-          </button>
-        )}
-
-        {mode === 'login' && (
-          <button onClick={() => {
-            setShowEmailVerification(true);
-            setVerificationEmail('');
-            setVerificationCode('');
-            setMessage('');
-          }} className="app-auth-btn-primary">
-            ✉️ Email Doğrula
-          </button>
-        )}
-
-        <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="app-auth-btn-secondary">
-          {mode === 'login' ? 'Hesabın yok mu? Kayıt ol' : 'Zaten hesabın var mı? Giriş yap'}
-        </button>
-
-        {message && (
-          <div className={`app-auth-message ${message.includes('başarılı') ? 'success' : 'error'}`}>
-            {message}
-          </div>
-        )}
+        <h4>{user.displayName}</h4>
+        <p>{user.email}</p>
+      </div>
+      
+      <div className="profile-stats">
+        <div className="stat-item">
+          <span className="stat-label">Toplam Kişi</span>
+          <span className="stat-value">{Array.isArray(contacts) ? contacts.length : 0}</span>
+        </div>
       </div>
     </div>
   );
