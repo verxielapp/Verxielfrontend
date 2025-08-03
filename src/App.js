@@ -286,9 +286,16 @@ function App() {
 
   // Verification code send
   const sendVerificationCode = async (email) => {
+    if (!email) {
+      alert('Lütfen önce email adresinizi girin!');
+      return;
+    }
+    
     try {
       await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
-      alert('Doğrulama kodu gönderildi!');
+      setVerificationEmail(email);
+      setAuthMode('verify');
+      alert('Doğrulama kodu gönderildi! Email adresinizi kontrol edin.');
     } catch (err) {
       alert(err.response?.data?.message || 'Kod gönderilemedi!');
     }
@@ -373,7 +380,14 @@ function App() {
                 </button>
               </form>
               
-              <button onClick={() => sendVerificationCode(document.querySelector('input[name="email"]')?.value)} className="auth-button secondary">
+              <button onClick={() => {
+                const email = document.querySelector('input[name="email"]')?.value;
+                if (email) {
+                  sendVerificationCode(email);
+                } else {
+                  alert('Lütfen önce email adresinizi girin!');
+                }
+              }} className="auth-button secondary">
                 Email Doğrulama
               </button>
               
