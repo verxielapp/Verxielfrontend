@@ -50,6 +50,15 @@ function App() {
     }
   }, [token, user]);
 
+  // LocalStorage'ı temizle
+  const clearLocalStorage = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken('');
+    setUser(null);
+    console.log('LocalStorage temizlendi');
+  };
+
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
     try {
@@ -61,6 +70,14 @@ function App() {
       return res.data.valid === true; // Explicit boolean check
     } catch (err) {
       console.error('Token verification failed:', err.response?.data || err.message);
+      // Token süresi dolmuşsa veya geçersizse false döndür
+      if (err.response?.status === 401) {
+        console.log('Token expired or invalid - clearing data');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken('');
+        setUser(null);
+      }
       return false;
     }
   };
