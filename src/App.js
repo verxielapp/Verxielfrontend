@@ -30,6 +30,9 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'contacts', 'profile'
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify'
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
 
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
@@ -208,18 +211,38 @@ function App() {
     const formData = new FormData(e.target);
     const email = formData.get('email');
     const password = formData.get('password');
+    const displayName = formData.get('displayName');
+    const username = formData.get('username');
 
     try {
-      const res = await axios.post('https://verxiel.onrender.com/api/auth/login', { email, password });
-      const { token: newToken, user: userData } = res.data;
-      
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setToken(newToken);
-      setUser(userData);
+      if (authMode === 'login') {
+        const res = await axios.post('https://verxiel.onrender.com/api/auth/login', { email, password });
+        const { token: newToken, user: userData } = res.data;
+        
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setToken(newToken);
+        setUser(userData);
+      } else if (authMode === 'register') {
+        const res = await axios.post('https://verxiel.onrender.com/api/auth/register', { 
+          email, 
+          password, 
+          displayName, 
+          username 
+        });
+        
+        if (res.data.needsVerification) {
+          setVerificationEmail(email);
+          setAuthMode('verify');
+          alert('Kayıt başarılı! Email adresinizi doğrulayın.');
+        } else {
+          alert('Kayıt başarılı! Giriş yapabilirsiniz.');
+          setAuthMode('login');
+        }
+      }
     } catch (err) {
-      console.error('Login error:', err);
-      alert(err.response?.data?.message || 'Giriş başarısız!');
+      console.error('Auth error:', err);
+      alert(err.response?.data?.message || 'İşlem başarısız!');
     }
   };
 
@@ -238,6 +261,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(userData));
       setToken(newToken);
       setUser(userData);
+      setAuthMode('login');
     } catch (err) {
       console.error('Email verification error:', err);
       alert(err.response?.data?.message || 'Doğrulama başarısız!');
@@ -246,7 +270,7 @@ function App() {
 
   // Verification code resend
   const resendVerificationCode = async () => {
-    const email = document.querySelector('input[name="email"]')?.value;
+    const email = verificationEmail || document.querySelector('input[name="email"]')?.value;
     if (!email) {
       alert('Lütfen email adresinizi girin!');
       return;
@@ -327,29 +351,115 @@ function App() {
             <p className="auth-subtitle">Güvenli Mesajlaşma</p>
           </div>
           
-          <form onSubmit={handleAuth} className="auth-form">
-            <input
-              type="email"
-              name="email"
-              placeholder="E-posta"
-              required
-              className="auth-input"
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Şifre"
-              required
-              className="auth-input"
-            />
-            <button type="submit" className="auth-button">
-              Giriş Yap
-            </button>
-          </form>
-          
-          <button onClick={() => sendVerificationCode(document.querySelector('input[name="email"]')?.value)} className="auth-button secondary">
-            Email Doğrulama
-          </button>
+          {authMode === 'login' && (
+            <>
+              <form onSubmit={handleAuth} className="auth-form">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="E-posta"
+                  required
+                  className="auth-input"
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Şifre"
+                  required
+                  className="auth-input"
+                />
+                <button type="submit" className="auth-button">
+                  Giriş Yap
+                </button>
+              </form>
+              
+              <button onClick={() => sendVerificationCode(document.querySelector('input[name="email"]')?.value)} className="auth-button secondary">
+                Email Doğrulama
+              </button>
+              
+              <button onClick={() => setAuthMode('register')} className="auth-button secondary">
+                Kayıt Ol
+              </button>
+            </>
+          )}
+
+          {authMode === 'register' && (
+            <>
+              <form onSubmit={handleAuth} className="auth-form">
+                <input
+                  type="text"
+                  name="displayName"
+                  placeholder="Ad Soyad"
+                  required
+                  className="auth-input"
+                />
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Kullanıcı Adı"
+                  required
+                  className="auth-input"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="E-posta"
+                  required
+                  className="auth-input"
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Şifre"
+                  required
+                  className="auth-input"
+                />
+                <button type="submit" className="auth-button">
+                  Kayıt Ol
+                </button>
+              </form>
+              
+              <button onClick={() => setAuthMode('login')} className="auth-button secondary">
+                Giriş Yap
+              </button>
+            </>
+          )}
+
+          {authMode === 'verify' && (
+            <>
+              <form onSubmit={handleEmailVerification} className="auth-form">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="E-posta"
+                  value={verificationEmail}
+                  onChange={(e) => setVerificationEmail(e.target.value)}
+                  required
+                  className="auth-input"
+                />
+                <input
+                  type="text"
+                  name="code"
+                  placeholder="Doğrulama Kodu"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  required
+                  className="auth-input"
+                />
+                <button type="submit" className="auth-button">
+                  Doğrula
+                </button>
+              </form>
+              
+              <button onClick={resendVerificationCode} className="auth-button secondary">
+                Kodu Yeniden Gönder
+              </button>
+              
+              <button onClick={() => setAuthMode('login')} className="auth-button secondary">
+                Giriş Yap
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
