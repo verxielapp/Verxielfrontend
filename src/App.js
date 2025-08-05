@@ -745,7 +745,7 @@ function Chat({ contact, token, user }) {
     setNewMessage('');
     
     // Socket.io ile mesaj gönder
-    if (window.socket && isConnected) {
+    if (window.socket) {
       window.socket.emit('send_message', message);
     }
   };
