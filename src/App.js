@@ -321,7 +321,7 @@ function App() {
 
   // Back to login
   const handleBackToLogin = () => {
-    setShowProfile(false);
+    // setShowProfile(false);
   };
 
   // Settings
@@ -745,9 +745,9 @@ function Chat({ contact, token, user }) {
     setNewMessage('');
     
     // Socket.io ile mesaj gönder
-    if (window.socket && isConnected) {
-      window.socket.emit('send_message', message);
-    }
+    // if (window.socket && isConnected) {
+    //   window.socket.emit('send_message', message);
+    // }
   };
 
   return (
