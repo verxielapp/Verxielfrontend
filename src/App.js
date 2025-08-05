@@ -27,7 +27,7 @@ function App() {
   const [addEmail, setAddEmail] = useState('');
   const [addContactMsg, setAddContactMsg] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  // const [showProfile, setShowProfile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'contacts', 'profile'
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify'
@@ -58,13 +58,13 @@ function App() {
   };
 
   // LocalStorage'ı temizle
-  const clearLocalStorage = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken('');
-    setUser(null);
-    console.log('LocalStorage temizlendi');
-  };
+  // const clearLocalStorage = () => {
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('user');
+  //   setToken('');
+  //   setUser(null);
+  //   console.log('LocalStorage temizlendi');
+  // };
 
   // Token geçerliliğini kontrol et
   useEffect(() => {
@@ -160,18 +160,18 @@ function App() {
   };
 
   // Kişi sil
-  const deleteContact = async (contactId) => {
-    try {
-      await axios.post('https://verxiel.onrender.com/api/auth/delete-contact', { contactId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const updated = contacts.filter(c => (c.id || c._id) !== contactId);
-      setContacts(updated);
-      if (selectedContact && (selectedContact.id || selectedContact._id) === contactId) setSelectedContact(updated[0] || null);
-    } catch (err) {
-      console.error('Delete contact error:', err);
-    }
-  };
+  // const deleteContact = async (contactId) => {
+  //   try {
+  //     await axios.post('https://verxiel.onrender.com/api/auth/delete-contact', { contactId }, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //     const updated = contacts.filter(c => (c.id || c._id) !== contactId);
+  //     setContacts(updated);
+  //     if (selectedContact && (selectedContact.id || selectedContact._id) === contactId) setSelectedContact(updated[0] || null);
+  //   } catch (err) {
+  //     console.error('Delete contact error:', err);
+  //   }
+  // };
 
   // Bilinmeyen kişi ile sohbet başlat
   const startChatWithUnknown = async (email) => {
@@ -312,16 +312,16 @@ function App() {
   };
 
   // QR Login success
-  const handleQRLoginSuccess = (userData) => {
-    localStorage.setItem('token', userData.token);
-    localStorage.setItem('user', JSON.stringify(userData.user));
-    setToken(userData.token);
-    setUser(userData.user);
-  };
+  // const handleQRLoginSuccess = (userData) => {
+  //   localStorage.setItem('token', userData.token);
+  //   localStorage.setItem('user', JSON.stringify(userData.user));
+  //   setToken(userData.token);
+  //   setUser(userData.user);
+  // };
 
   // Back to login
   const handleBackToLogin = () => {
-    setShowProfile(false);
+    // setShowProfile(false);
   };
 
   // Settings
@@ -728,7 +728,7 @@ function App() {
 function Chat({ contact, token, user }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
+  // const [isConnected, setIsConnected] = useState(false);
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
