@@ -27,7 +27,7 @@ function App() {
   const [addEmail, setAddEmail] = useState('');
   const [addContactMsg, setAddContactMsg] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  // const [showProfile, setShowProfile] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'contacts', 'profile'
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify'
@@ -58,24 +58,24 @@ function App() {
   };
 
   // LocalStorage'ı temizle
-  // const clearLocalStorage = () => {
-  //   localStorage.removeItem('token');
-  //   localStorage.removeItem('user');
-  //   setToken('');
-  //   setUser(null);
-  //   console.log('LocalStorage temizlendi');
-  // };
+  const clearLocalStorage = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken('');
+    setUser(null);
+    console.log('LocalStorage temizlendi');
+  };
 
   // Token geçerliliğini kontrol et
   useEffect(() => {
     const checkTokenValidity = async () => {
-      const savedToken = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
       
       console.log('Debug - Saved token:', savedToken ? savedToken.substring(0, 20) + '...' : 'NO TOKEN');
       console.log('Debug - Saved user:', savedUser);
       
-      if (savedToken && savedUser) {
+    if (savedToken && savedUser) {
         console.log('Checking token validity...');
         try {
           const isValid = await verifyToken(savedToken);
@@ -83,12 +83,12 @@ function App() {
           
           if (isValid === true) {
             console.log('Token is valid, setting user data');
-            setToken(savedToken);
-            setUser(JSON.parse(savedUser));
-          } else {
+      setToken(savedToken);
+      setUser(JSON.parse(savedUser));
+    } else {
             console.log('Token is invalid, clearing data');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
             setToken('');
             setUser(null);
           }
@@ -160,18 +160,18 @@ function App() {
   };
 
   // Kişi sil
-  // const deleteContact = async (contactId) => {
-  //   try {
-  //     await axios.post('https://verxiel.onrender.com/api/auth/delete-contact', { contactId }, {
-  //       headers: { Authorization: `Bearer ${token}` }
-  //   });
-  //   const updated = contacts.filter(c => (c.id || c._id) !== contactId);
-  //   setContacts(updated);
-  //   if (selectedContact && (selectedContact.id || selectedContact._id) === contactId) setSelectedContact(updated[0] || null);
-  // } catch (err) {
-  //   console.error('Delete contact error:', err);
-  // }
-  // };
+  const deleteContact = async (contactId) => {
+    try {
+      await axios.post('https://verxiel.onrender.com/api/auth/delete-contact', { contactId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const updated = contacts.filter(c => (c.id || c._id) !== contactId);
+      setContacts(updated);
+      if (selectedContact && (selectedContact.id || selectedContact._id) === contactId) setSelectedContact(updated[0] || null);
+    } catch (err) {
+      console.error('Delete contact error:', err);
+    }
+  };
 
   // Bilinmeyen kişi ile sohbet başlat
   const startChatWithUnknown = async (email) => {
@@ -312,16 +312,16 @@ function App() {
   };
 
   // QR Login success
-  // const handleQRLoginSuccess = (userData) => {
-  //   localStorage.setItem('token', userData.token);
-  //   localStorage.setItem('user', JSON.stringify(userData.user));
-  //   setToken(userData.token);
-  //   setUser(userData.user);
-  // };
+  const handleQRLoginSuccess = (userData) => {
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('user', JSON.stringify(userData.user));
+    setToken(userData.token);
+    setUser(userData.user);
+  };
 
   // Back to login
   const handleBackToLogin = () => {
-    // setShowProfile(false);
+    setShowProfile(false);
   };
 
   // Settings
@@ -474,8 +474,8 @@ function App() {
               </button>
             </>
           )}
+          </div>
         </div>
-      </div>
     );
   }
 
@@ -491,7 +491,7 @@ function App() {
         <div className="header-logo">
           <img src="/logo192.png" alt="Verxiel" />
           <span>Verxiel</span>
-        </div>
+            </div>
         
         <div className="header-user">
           <span>{user.displayName || user.email}</span>
@@ -536,12 +536,12 @@ function App() {
                 ) : (
                   <div className="contact-avatar-placeholder">
                     {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
-                  </div>
-                )}
+                    </div>
+                  )}
                 <div className="contact-name">{contact.displayName || contact.email}</div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
         </aside>
 
         {/* Main Content Area */}
@@ -554,8 +554,8 @@ function App() {
                 <h2>Kişiler</h2>
                 <button onClick={() => setShowAddContact(true)} className="add-contact-btn mobile">
                   {Icons.add}
-                </button>
-              </div>
+                    </button>
+                  </div>
               <ul className="contact-list">
                 {Array.isArray(contacts) && contacts.map(contact => (
                   <li key={contact.id || contact._id} className="contact-item">
@@ -564,8 +564,8 @@ function App() {
                     ) : (
                       <div className="contact-avatar-placeholder">
                         {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
-                      </div>
-                    )}
+                    </div>
+                  )}
                     <div className="contact-name">{contact.displayName || contact.email}</div>
                   </li>
                 ))}
@@ -576,20 +576,20 @@ function App() {
                       <button onClick={() => setShowAddContact(true)} className="add-first-contact-btn">
                         İlk Kişiyi Ekle
                       </button>
-                    </div>
+                </div>
                   </li>
-                )}
+            )}
               </ul>
-            </div>
+          </div>
           ) : currentView === 'profile' ? (
             <Profile user={user} contacts={contacts} token={token} onBack={handleBackToLogin} />
-          ) : (
+            ) : (
             <div className="no-contact-message">
               <h2>Hoş Geldiniz!</h2>
               <p>Bir kişi seçin veya yeni kişi ekleyin</p>
             </div>
-          )}
-        </div>
+            )}
+          </div>
       </main>
 
       {/* Mobile Bottom Navigation */}
@@ -600,7 +600,7 @@ function App() {
         >
           <span>{Icons.chat}</span>
           <span>Sohbet</span>
-        </div>
+          </div>
         <div 
           className={`mobile-bottom-nav-item ${currentView === 'contacts' ? 'active' : ''}`}
           onClick={() => handleMobileNav('contacts')}
@@ -614,7 +614,7 @@ function App() {
         >
           <span>{Icons.profile}</span>
           <span>Profil</span>
-        </div>
+      </div>
       </nav>
 
       {/* Floating Action Button for Mobile */}
@@ -627,29 +627,29 @@ function App() {
       </button>
 
       {/* Add Contact Modal */}
-      {showAddContact && (
+            {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h3 className="modal-title">Kişi Ekle</h3>
-            <input
-              type="email"
+              <input
+                type="email"
               placeholder="E-posta adresi"
-              value={addEmail}
-              onChange={(e) => setAddEmail(e.target.value)}
+                    value={addEmail}
+                    onChange={(e) => setAddEmail(e.target.value)}
               className="modal-input"
             />
             <div className="modal-actions">
               <button onClick={() => addContact(addEmail)} className="modal-button primary">
-                Ekle
+                      Ekle
               </button>
               <button onClick={() => startChatWithUnknown(addEmail)} className="modal-button secondary">
                 Sohbet Başlat
-              </button>
-            </div>
+                    </button>
+              </div>
             {addContactMsg && <div className="modal-message">{addContactMsg}</div>}
           </div>
-        </div>
-      )}
+                    </div>
+                  )}
 
       {/* Settings Modal */}
       {showSettings && (
@@ -659,8 +659,8 @@ function App() {
               <h2>Ayarlar</h2>
               <button onClick={closeSettings} className="app-settings-close-btn">
                 {Icons.close}
-              </button>
-            </div>
+                </button>
+                </div>
             
             <div className="app-settings-sections">
               <div className="app-settings-section">
@@ -668,12 +668,12 @@ function App() {
                 <div className="app-settings-item">
                   <span>Ad Soyad</span>
                   <span className="app-settings-value">{user.displayName}</span>
-                </div>
+              </div>
                 <div className="app-settings-item">
                   <span>E-posta</span>
                   <span className="app-settings-value">{user.email}</span>
-                </div>
-              </div>
+          </div>
+          </div>
               
               <div className="app-settings-section">
                 <h3>Bildirimler</h3>
@@ -683,15 +683,15 @@ function App() {
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
                   </label>
-                </div>
+          </div>
                 <div className="app-settings-item">
                   <span>Ses Bildirimleri</span>
                   <label className="app-settings-toggle">
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
                   </label>
-                </div>
-              </div>
+        </div>
+      </div>
               
               <div className="app-settings-section">
                 <h3>Gizlilik</h3>
@@ -701,34 +701,34 @@ function App() {
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
                   </label>
-                </div>
+          </div>
                 <div className="app-settings-item">
                   <span>Son Görülme</span>
                   <label className="app-settings-toggle">
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
                   </label>
-                </div>
+        </div>
               </div>
-            </div>
-            
+              </div>
+              
             <div className="app-settings-footer">
               <button onClick={handleLogout} className="app-settings-btn app-settings-btn-danger">
                 Çıkış Yap
-              </button>
-            </div>
+                </button>
           </div>
         </div>
+        </div>
       )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
 // Chat Component
 function Chat({ contact, token, user }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  // const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -745,9 +745,9 @@ function Chat({ contact, token, user }) {
     setNewMessage('');
     
     // Socket.io ile mesaj gönder
-    // if (window.socket && isConnected) {
-    //   window.socket.emit('send_message', message);
-    // }
+    if (window.socket && isConnected) {
+      window.socket.emit('send_message', message);
+    }
   };
 
   return (
@@ -759,7 +759,7 @@ function Chat({ contact, token, user }) {
           ) : (
             <div className="chat-contact-avatar-placeholder">
               {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
-            </div>
+          </div>
           )}
           <div className="chat-contact-details">
             <div className="chat-contact-name">{contact.displayName || contact.email}</div>
@@ -769,8 +769,8 @@ function Chat({ contact, token, user }) {
         <div className="chat-actions">
           <button className="chat-call-btn">{Icons.call}</button>
         </div>
-      </div>
-      
+        </div>
+
       <div className="chat-messages">
         {Array.isArray(messages) && messages.map(message => (
           <div key={message.id} className={`message ${message.sender === user.email ? 'sent' : 'received'}`}>
@@ -781,8 +781,8 @@ function Chat({ contact, token, user }) {
       </div>
       
       <div className="chat-input-container">
-        <input
-          type="text"
+            <input
+              type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
@@ -824,7 +824,7 @@ function Profile({ user, contacts, token, onBack }) {
         <div className="stat-item">
           <span className="stat-label">Toplam Kişi</span>
           <span className="stat-value">{Array.isArray(contacts) ? contacts.length : 0}</span>
-        </div>
+          </div>
       </div>
     </div>
   );
