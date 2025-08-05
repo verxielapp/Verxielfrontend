@@ -3,10 +3,4 @@
   publish = "build"
 
 [build.environment]
-  CI = "false"
-  SECRETS_SCAN_ENABLED = "false"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200 
+  CI = "false" 
