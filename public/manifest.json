@@ -1,15 +1,29 @@
 {
   "short_name": "Verxiel",
-  "name": "Verxiel - Web Service",
+  "name": "Verxiel - Modern Mesajlaşma Uygulaması",
+  "description": "Güvenli, hızlı ve modern mesajlaşma deneyimi. QR kod ile kolay giriş, sesli ve görüntülü arama özellikleri.",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#a259e6",
+  "background_color": "#ffffff",
+  "categories": ["communication", "social", "productivity"],
+  "lang": "tr",
+  "dir": "ltr"
 }
