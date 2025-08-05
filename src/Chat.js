@@ -40,19 +40,9 @@ export default function Chat({ token, user, contact, addContact }) {
     }).then(res => {
       const messagesData = Array.isArray(res.data) ? res.data : [];
       console.log('Messages loaded:', messagesData);
-      console.log('User ID:', user.id);
-      console.log('Contact ID:', contact._id);
-      console.log('Messages count:', messagesData.length);
-      
-      // Mesaj formatını kontrol et
-      if (messagesData.length > 0) {
-        console.log('First message format:', messagesData[0]);
-      }
-      
       setMessages(messagesData);
     }).catch(err => {
       console.error('Messages fetch error:', err);
-      console.error('Error response:', err.response?.data);
     });
     
     // Socket bağlantısı
@@ -81,13 +71,10 @@ export default function Chat({ token, user, contact, addContact }) {
       console.log('Received message:', msg);
       const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
       const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
-      const fromId = (msg.fromId || msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
-      const toId = (msg.toId || msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
-      
-      console.log('Message routing check:', { myId, contactId, fromId, toId });
+      const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
+      const toId = (msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
       
       if ((fromId === myId && toId === contactId) || (fromId === contactId && toId === myId)) {
-        console.log('Adding message to chat:', msg);
         setMessages(prev => [...prev, msg]);
       }
     });
@@ -134,10 +121,8 @@ export default function Chat({ token, user, contact, addContact }) {
     
     // Mesajı local olarak ekle
     const newMessage = {
-      fromId: myId,
-      toId: contactId,
-      from: { id: myId, displayName: user.displayName },
-      to: { id: contactId, displayName: contact.displayName },
+      from: { _id: myId, displayName: user.displayName },
+      to: { _id: contactId, displayName: contact.displayName },
       content: input,
       timestamp: new Date().toISOString()
     };
@@ -279,9 +264,8 @@ export default function Chat({ token, user, contact, addContact }) {
       <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
         {(Array.isArray(messages) ? messages : []).map((msg, i) => {
           const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
-          const fromId = (msg.fromId || msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
+          const fromId = (msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
           const isMe = fromId === myId;
-          
           // Kişi listesinde yoksa 'Bilinmeyen Kişi'
           let name = 'Bilinmeyen Kişi';
           if (isMe) {
@@ -291,9 +275,6 @@ export default function Chat({ token, user, contact, addContact }) {
           } else if (msg.from?.displayName || msg.from?.username || msg.from?.email) {
             name = msg.from.displayName || msg.from.username || msg.from.email;
           }
-          
-          console.log(`Message ${i}:`, { fromId, myId, isMe, name, content: msg.content });
-          
           return (
             <div key={i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ textAlign: isMe ? 'right' : 'left', margin: '2px 0' }}>
               <b>{name}</b>: {msg.content}
