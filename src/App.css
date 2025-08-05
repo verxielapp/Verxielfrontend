@@ -217,6 +217,113 @@ body {
   font-size: 18px;
 }
 
+/* Contacts View */
+.contacts-view {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.contacts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.contacts-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.add-contact-btn.mobile {
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(162, 89, 230, 0.3);
+  transition: all 0.3s ease;
+}
+
+.add-contact-btn.mobile:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.4);
+}
+
+.contact-item.empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.contact-empty-message {
+  text-align: center;
+  color: #666;
+}
+
+.contact-empty-message span {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.add-first-contact-btn {
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(162, 89, 230, 0.3);
+  transition: all 0.3s ease;
+}
+
+.add-first-contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.4);
+}
+
+/* Floating Action Button */
+.mobile-fab {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: none;
+}
+
+.mobile-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(162, 89, 230, 0.5);
+}
+
 /* Chat Container */
 .chat-container {
   max-width: 600px;
@@ -1467,4 +1574,12 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #8a4fd8, #6a4c93);
+}
+
+@media (max-width: 768px) {
+  .mobile-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

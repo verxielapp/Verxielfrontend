@@ -550,7 +550,12 @@ function App() {
             <Chat contact={selectedContact} token={token} user={user} />
           ) : currentView === 'contacts' ? (
             <div className="contacts-view">
-              <h2>Kişiler</h2>
+              <div className="contacts-header">
+                <h2>Kişiler</h2>
+                <button onClick={() => setShowAddContact(true)} className="add-contact-btn mobile">
+                  {Icons.add}
+                </button>
+              </div>
               <ul className="contact-list">
                 {Array.isArray(contacts) && contacts.map(contact => (
                   <li key={contact.id || contact._id} className="contact-item">
@@ -564,6 +569,16 @@ function App() {
                     <div className="contact-name">{contact.displayName || contact.email}</div>
                   </li>
                 ))}
+                {(!contacts || contacts.length === 0) && (
+                  <li className="contact-item empty">
+                    <div className="contact-empty-message">
+                      <span>Henüz kişi yok</span>
+                      <button onClick={() => setShowAddContact(true)} className="add-first-contact-btn">
+                        İlk Kişiyi Ekle
+                      </button>
+                    </div>
+                  </li>
+                )}
               </ul>
             </div>
           ) : currentView === 'profile' ? (
@@ -601,6 +616,15 @@ function App() {
           <span>Profil</span>
         </div>
       </nav>
+
+      {/* Floating Action Button for Mobile */}
+      <button 
+        className="mobile-fab"
+        onClick={() => setShowAddContact(true)}
+        title="Kişi Ekle"
+      >
+        {Icons.add}
+      </button>
 
       {/* Add Contact Modal */}
       {showAddContact && (
