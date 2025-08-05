@@ -1,9 +1,3 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://verxiel.netlify.app/sitemap.xml
-
-# Crawl-delay
-Crawl-delay: 1
+Disallow:

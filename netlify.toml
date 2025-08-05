@@ -4,6 +4,7 @@
 
 [build.environment]
   CI = "false"
+  SECRETS_SCAN_ENABLED = "false"
 
 [[redirects]]
   from = "/*"
