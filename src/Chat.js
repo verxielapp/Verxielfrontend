@@ -11,11 +11,11 @@ export default function Chat({ token, user, contact, addContact }) {
   const socketRef = useRef();
   const scrollRef = useRef();
 
-  // WebRTC arama state'leri
-  const [callType, setCallType] = useState(null); // 'audio' | 'video' | null
-  const [callModal, setCallModal] = useState(false); // gelen arama modalı
+  // WebRTC arama state'leri - şimdilik kullanılmıyor
+  // const [callType, setCallType] = useState(null); // 'audio' | 'video' | null
+  // const [callModal, setCallModal] = useState(false); // gelen arama modalı
   const [callIncoming, setCallIncoming] = useState(null); // { from, type }
-  const [inCall, setInCall] = useState(false);
+  // const [inCall, setInCall] = useState(false);
   const [remoteStream, setRemoteStream] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const pcRef = useRef();
@@ -195,31 +195,31 @@ export default function Chat({ token, user, contact, addContact }) {
     socketRef.current.emit('call-offer', { to: contact.id || contact._id, offer, type });
   };
 
-  // Gelen aramayı kabul et
-  const acceptCall = async () => {
-    setCallType(callIncoming.type);
-    setInCall(true);
-    setCallModal(false);
-    // PeerConnection oluştur
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-    pcRef.current = pc;
-    // Kamera/mikrofon al
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callIncoming.type === 'video' });
-    setLocalStream(stream);
-    stream.getTracks().forEach(track => pc.addTrack(track, stream));
-    pc.ontrack = (e) => {
-      setRemoteStream(e.streams[0]);
-    };
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        socketRef.current.emit('call-ice', { to: callIncoming.from._id, candidate: e.candidate });
-      }
-    };
-    await pc.setRemoteDescription(callIncoming.offer);
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socketRef.current.emit('call-answer', { to: callIncoming.from._id, answer });
-  };
+  // Gelen aramayı kabul et - şimdilik kullanılmıyor
+  // const acceptCall = async () => {
+  //   setCallType(callIncoming.type);
+  //   setInCall(true);
+  //   setCallModal(false);
+  //   // PeerConnection oluştur
+  //   const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  //   pcRef.current = pc;
+  //   // Kamera/mikrofon al
+  //   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callIncoming.type === 'video' });
+  //   setLocalStream(stream);
+  //   stream.getTracks().forEach(track => pc.addTrack(track, stream));
+  //   pc.ontrack = (e) => {
+  //     setRemoteStream(e.streams[0]);
+  //   };
+  //   pc.onicecandidate = (e) => {
+  //     if (e.candidate) {
+  //       socketRef.current.emit('call-ice', { to: callIncoming.from._id, candidate: e.candidate });
+  //     }
+  //   };
+  //   await pc.setRemoteDescription(callIncoming.offer);
+  //   const answer = await pc.createAnswer();
+  //   await pc.setLocalDescription(answer);
+  //   socketRef.current.emit('call-answer', { to: callIncoming.from._id, answer });
+  // };
 
   // Aramayı bitir
   const endCall = useCallback(() => {

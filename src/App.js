@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Chat from './Chat';
+import FriendRequests from './FriendRequests';
 import './App.css';
 
 // Icons için basit emoji kullanımı
@@ -30,7 +31,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   // const [showProfile, setShowProfile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'contacts', 'profile'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'contacts', 'profile', 'friend-requests'
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify'
   const [verificationEmail, setVerificationEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -584,6 +585,8 @@ function App() {
           </div>
           ) : currentView === 'profile' ? (
             <Profile user={user} contacts={contacts} token={token} onBack={handleBackToLogin} />
+          ) : currentView === 'friend-requests' ? (
+            <FriendRequests token={token} user={user} onBack={() => setCurrentView('chat')} />
             ) : (
             <div className="no-contact-message">
               <h2>Hoş Geldiniz!</h2>
@@ -608,6 +611,13 @@ function App() {
         >
           <span>{Icons.contacts}</span>
           <span>Kişiler</span>
+        </div>
+        <div 
+          className={`mobile-bottom-nav-item ${currentView === 'friend-requests' ? 'active' : ''}`}
+          onClick={() => handleMobileNav('friend-requests')}
+        >
+          <span>🤝</span>
+          <span>İstekler</span>
         </div>
         <div 
           className={`mobile-bottom-nav-item ${currentView === 'profile' ? 'active' : ''}`}
