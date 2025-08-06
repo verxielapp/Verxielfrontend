@@ -105,22 +105,23 @@ export default function Chat({ token, user, contact, addContact }) {
         }
       }
     });
-    // WebRTC sinyalleşme
-    socketRef.current.on('call-offer', async ({ from, offer, type }) => {
-      setCallIncoming({ from, type, offer });
-      setCallModal(true);
-    });
-    socketRef.current.on('call-answer', async ({ answer }) => {
-      await pcRef.current.setRemoteDescription(answer);
-    });
-    socketRef.current.on('call-ice', async ({ candidate }) => {
-      if (candidate && pcRef.current) {
-        try { await pcRef.current.addIceCandidate(candidate); } catch {}
-      }
-    });
-    socketRef.current.on('call-end', () => {
-      endCall();
-    });
+    // WebRTC sinyalleşme - şimdilik devre dışı
+    // socketRef.current.on('call-offer', async ({ from, offer, type }) => {
+    //   setCallIncoming({ from, type, offer });
+    //   setCallModal(true);
+    // });
+    // WebRTC socket eventleri - şimdilik devre dışı
+    // socketRef.current.on('call-answer', async ({ answer }) => {
+    //   await pcRef.current.setRemoteDescription(answer);
+    // });
+    // socketRef.current.on('call-ice', async ({ candidate }) => {
+    //   if (candidate && pcRef.current) {
+    //     try { await pcRef.current.addIceCandidate(candidate); } catch {}
+    //   }
+    // });
+    // socketRef.current.on('call-end', () => {
+    //   endCall();
+    // });
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       socketRef.current.disconnect();
@@ -170,30 +171,30 @@ export default function Chat({ token, user, contact, addContact }) {
     setInput('');
   };
 
-  // Arama başlat
-  const startCall = async (type) => {
-    setCallType(type);
-    setInCall(true);
-    // PeerConnection oluştur
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-    pcRef.current = pc;
-    // Kamera/mikrofon al
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
-    setLocalStream(stream);
-    stream.getTracks().forEach(track => pc.addTrack(track, stream));
-    pc.ontrack = (e) => {
-      setRemoteStream(e.streams[0]);
-    };
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        socketRef.current.emit('call-ice', { to: contact._id, candidate: e.candidate });
-      }
-    };
-    // Offer oluştur ve gönder
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    socketRef.current.emit('call-offer', { to: contact.id || contact._id, offer, type });
-  };
+  // Arama başlat - şimdilik devre dışı
+  // const startCall = async (type) => {
+  //   setCallType(type);
+  //   setInCall(true);
+  //   // PeerConnection oluştur
+  //   const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  //   pcRef.current = pc;
+  //   // Kamera/mikrofon al
+  //   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
+  //   setLocalStream(stream);
+  //   stream.getTracks().forEach(track => pc.addTrack(track, stream));
+  //   pc.ontrack = (e) => {
+  //     setRemoteStream(e.streams[0]);
+  //   };
+  //   pc.onicecandidate = (e) => {
+  //     if (e.candidate) {
+  //       socketRef.current.emit('call-ice', { to: contact._id, candidate: e.candidate });
+  //     }
+  //   };
+  //   // Offer oluştur ve gönder
+  //   const offer = await pc.createOffer();
+  //   await pc.setLocalDescription(offer);
+  //   socketRef.current.emit('call-offer', { to: contact.id || contact._id, offer, type });
+  // };
 
   // Gelen aramayı kabul et - şimdilik kullanılmıyor
   // const acceptCall = async () => {
@@ -221,20 +222,20 @@ export default function Chat({ token, user, contact, addContact }) {
   //   socketRef.current.emit('call-answer', { to: callIncoming.from._id, answer });
   // };
 
-  // Aramayı bitir
-  const endCall = useCallback(() => {
-    setInCall(false);
-    setCallType(null);
-    setCallModal(false);
-    setCallIncoming(null);
-    setRemoteStream(null);
-    setLocalStream(null);
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-    socketRef.current.emit('call-end', { to: contact.id || contact._id });
-  }, [contact.id, contact._id]);
+  // Aramayı bitir - şimdilik devre dışı
+  // const endCall = useCallback(() => {
+  //   setInCall(false);
+  //   setCallType(null);
+  //   setCallModal(false);
+  //   setCallIncoming(null);
+  //   setRemoteStream(null);
+  //   setLocalStream(null);
+  //   if (pcRef.current) {
+  //     pcRef.current.close();
+  //     pcRef.current = null;
+  //   }
+  //   socketRef.current.emit('call-end', { to: contact.id || contact._id });
+  // }, [contact.id, contact._id]);
 
   // Video elementlerini güncelle
   useEffect(() => {
