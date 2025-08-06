@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import Chat from './Chat';
 import './App.css';
 
 // Icons için basit emoji kullanımı
@@ -724,78 +725,7 @@ function App() {
     );
   }
 
-// Chat Component
-function Chat({ contact, token, user }) {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  // const [isConnected, setIsConnected] = useState(false);
-
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    
-    const message = {
-      id: Date.now(),
-      text: newMessage,
-      sender: user.email,
-      receiver: contact.email,
-      timestamp: new Date().toISOString()
-    };
-    
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
-    
-    // Socket.io ile mesaj gönder
-    if (window.socket) {
-      window.socket.emit('send_message', message);
-    }
-  };
-
-  return (
-    <div className="chat-container">
-      <div className="chat-header">
-        <div className="chat-contact-info">
-          {contact.avatarUrl ? (
-            <img src={contact.avatarUrl} alt={contact.displayName} className="chat-contact-avatar" />
-          ) : (
-            <div className="chat-contact-avatar-placeholder">
-              {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
-          </div>
-          )}
-          <div className="chat-contact-details">
-            <div className="chat-contact-name">{contact.displayName || contact.email}</div>
-            <div className="chat-contact-status">Çevrimiçi</div>
-          </div>
-        </div>
-        <div className="chat-actions">
-          <button className="chat-call-btn">{Icons.call}</button>
-        </div>
-        </div>
-
-      <div className="chat-messages">
-        {Array.isArray(messages) && messages.map(message => (
-          <div key={message.id} className={`message ${message.sender === user.email ? 'sent' : 'received'}`}>
-            <div className="message-content">{message.text}</div>
-            <div className="message-time">{new Date(message.timestamp).toLocaleTimeString()}</div>
-          </div>
-        ))}
-      </div>
-      
-      <div className="chat-input-container">
-            <input
-              type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Mesaj yaz..."
-          className="chat-input"
-        />
-        <button onClick={sendMessage} className="chat-send-btn">
-          {Icons.send}
-        </button>
-      </div>
-    </div>
-  );
-}
+// Chat Component - Ana chat bileşeni Chat.js'de tanımlı, burada sadece import edilecek
 
 // Profile Component
 function Profile({ user, contacts, token, onBack }) {
