@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  CI = "false"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  SECRETS_SCAN_ENABLED = "false"
+  SECRETS_SCAN_OMIT_KEYS = "NODE_ENV,DB_BACKUP_INTERVAL"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 

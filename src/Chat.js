@@ -89,6 +89,20 @@ export default function Chat({ token, user, contact, addContact }) {
       if ((fromId === myId && toId === contactId) || (fromId === contactId && toId === myId)) {
         console.log('Adding message to chat:', msg);
         setMessages(prev => [...prev, msg]);
+        // Bildirim: Sadece karşıdan gelen mesajlar için
+        if (fromId === contactId && fromId !== myId) {
+          // Bildirim izni yoksa iste
+          if (window.Notification && Notification.permission !== 'granted') {
+            Notification.requestPermission();
+          }
+          // Bildirim göster
+          if (window.Notification && Notification.permission === 'granted') {
+            new Notification(msg.from?.displayName || 'Yeni Mesaj', {
+              body: msg.content,
+              icon: contact.avatarUrl || '/logo192.png'
+            });
+          }
+        }
       }
     });
     // WebRTC sinyalleşme

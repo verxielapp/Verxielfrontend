@@ -1,0 +1,8 @@
+# Netlify secrets scanning'i devre dışı bırak
+build/service-worker.js.map
+build/static/js/*.js.map
+build/static/js/*.LICENSE.txt
+.gitignore
+package.json
+public/index.html
+src/serviceWorkerRegistration.js 
