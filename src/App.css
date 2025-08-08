@@ -81,19 +81,19 @@ body {
   display: flex;
   flex: 1;
   min-height: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
-  margin: 20px;
+  margin: 8px;
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
 /* Sidebar */
 .app-sidebar {
-  width: 280px;
-  background: #fafafa;
-  border-right: 1px solid #e1e5e9;
+  width: 400px;
+  background: #111b21;
+  border-right: 1px solid #2a3942;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -104,43 +104,44 @@ body {
 .desktop-nav-tabs {
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-bottom: 1px solid #e1e5e9;
+  background: #202c33;
+  border-bottom: 1px solid #2a3942;
   padding: 0;
 }
 
 .desktop-nav-tab {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
+  gap: 16px;
+  padding: 16px 20px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-left: 3px solid transparent;
-  color: #666;
+  color: #aebac1;
   font-weight: 500;
+  font-size: 15px;
 }
 
 .desktop-nav-tab:hover {
-  background: #f8f9fa;
-  color: #333;
+  background: #2a3942;
+  color: #d1d7db;
 }
 
 .desktop-nav-tab.active {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: #00a884;
   color: white;
-  border-left-color: #fff;
+  border-left-color: #00a884;
 }
 
 .desktop-nav-tab span:first-child {
-  font-size: 18px;
-  width: 20px;
+  font-size: 20px;
+  width: 24px;
   text-align: center;
 }
 
 .desktop-nav-tab span:last-child {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 /* Sidebar Header */
@@ -148,101 +149,105 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding: 24px 24px 16px 24px;
-  border-bottom: 2px solid #e1e5e9;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a3942;
+  background: #202c33;
 }
 
 .sidebar-header h4 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  color: #e9edef;
   margin: 0;
 }
 
 .add-contact-btn {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: #00a884;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  box-shadow: none;
 }
 
 .add-contact-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+  background: #008f72;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Contact List */
 .contact-list {
   list-style: none;
-  padding: 0 24px 24px 24px;
+  padding: 0;
   margin: 0;
   flex: 1;
   overflow-y: auto;
 }
 
 .contact-item {
-  margin: 8px 0;
+  margin: 0;
   cursor: pointer;
   padding: 12px 16px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  border-radius: 0;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 2px solid transparent;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid #2a3942;
 }
 
 .contact-item:hover {
-  background: rgba(52, 152, 219, 0.1);
-  transform: translateX(4px);
+  background: #2a3942;
+  transform: none;
 }
 
 .contact-item.selected {
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15));
-  border-color: #3498db;
-  font-weight: 600;
+  background: #2a3942;
+  border-color: transparent;
+  font-weight: 500;
 }
 
 .contact-avatar {
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: none;
+  box-shadow: none;
 }
 
 .contact-avatar-placeholder {
-  width: 55px;
-  height: 55px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: #00a884;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 22px;
+  font-size: 16px;
   color: white;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: none;
+  box-shadow: none;
 }
 
 .contact-name {
   flex: 1;
-  font-size: 18px;
-  font-weight: 600;
-  color: #34495e;
+  font-size: 16px;
+  font-weight: 500;
+  color: #e9edef;
 }
 
 /* Main Content Area */
@@ -250,26 +255,25 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #0b141a;
 }
 
 .no-contact-message {
   margin: 40px;
-  color: #888;
+  color: #8696a0;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 /* Chat Container */
 .chat-container {
-  max-width: 600px;
+  max-width: none;
   height: 100%;
   min-height: 0;
-  margin: auto;
-  margin-top: 10px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  background: #0b141a;
+  border-radius: 0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -278,13 +282,13 @@ body {
 .chat-header {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #eee;
-  padding: 16px 20px;
-  gap: 14px;
+  border-bottom: 1px solid #2a3942;
+  padding: 12px 16px;
+  gap: 12px;
   justify-content: space-between;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
+  background: #202c33;
+  color: #e9edef;
+  border-radius: 0;
 }
 
 .chat-contact-info {
@@ -294,24 +298,24 @@ body {
 }
 
 .chat-contact-avatar {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: none;
 }
 
 .chat-contact-avatar-placeholder {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: #00a884;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  border: none;
 }
 
 .chat-contact-details {
@@ -321,13 +325,14 @@ body {
 }
 
 .chat-contact-name {
-  font-weight: bold;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #e9edef;
 }
 
 .chat-contact-status {
   font-size: 12px;
-  opacity: 0.8;
+  color: #8696a0;
 }
 
 .chat-actions {
@@ -359,6 +364,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: #0b141a;
 }
 
 .message {
@@ -370,14 +376,14 @@ body {
 
 .message.sent {
   align-self: flex-end;
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: #00a884;
   color: white;
 }
 
 .message.received {
   align-self: flex-start;
-  background: #f1f1f1;
-  color: #333;
+  background: #202c33;
+  color: #e9edef;
 }
 
 .message-content {
@@ -394,43 +400,47 @@ body {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #2a3942;
+  background: #202c33;
 }
 
 .chat-input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #e1e5e9;
+  border: 1px solid #2a3942;
   border-radius: 24px;
   font-size: 16px;
   outline: none;
   transition: all 0.3s ease;
+  background: #2a3942;
+  color: #e9edef;
 }
 
 .chat-input:focus {
-  border-color: #a259e6;
-  box-shadow: 0 0 0 3px rgba(162, 89, 230, 0.1);
+  border-color: #00a884;
+  box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.1);
 }
 
 .chat-send-btn {
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: #00a884;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(162, 89, 230, 0.3);
+  box-shadow: none;
 }
 
 .chat-send-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.4);
+  background: #008f72;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Profile Sidebar */

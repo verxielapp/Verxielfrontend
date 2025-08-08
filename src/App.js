@@ -679,8 +679,8 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h3 className="modal-title">Kişi Ekle</h3>
-              <input
-                type="email"
+                  <input
+                    type="email"
               placeholder="E-posta adresi"
                     value={addEmail}
                     onChange={(e) => setAddEmail(e.target.value)}
@@ -689,11 +689,11 @@ function App() {
             <div className="modal-actions">
               <button onClick={() => addContact(addEmail)} className="modal-button primary">
                       Ekle
-              </button>
+                    </button>
               <button onClick={() => startChatWithUnknown(addEmail)} className="modal-button secondary">
                 Sohbet Başlat
                     </button>
-              </div>
+                  </div>
             {addContactMsg && <div className="modal-message">{addContactMsg}</div>}
           </div>
                     </div>
@@ -790,13 +790,13 @@ function Profile({ user, contacts, token, onBack }) {
           ) : (
             <div className="profile-avatar-placeholder">
               {user.displayName ? user.displayName.charAt(0).toUpperCase() : '?'}
-            </div>
+          </div>
           )}
         </div>
         <h4>{user.displayName}</h4>
         <p>{user.email}</p>
-      </div>
-      
+        </div>
+
       <div className="profile-stats">
         <div className="stat-item">
           <span className="stat-label">Toplam Kişi</span>
