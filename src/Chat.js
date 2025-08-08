@@ -157,7 +157,8 @@ export default function Chat({ token, user, contact, addContact }) {
         content: input, 
         to: contactId,
         from: myId,
-        image: selectedImage
+        image: selectedImage,
+        type: selectedImage ? 'image' : 'text'
       });
     }
     
@@ -171,7 +172,10 @@ export default function Chat({ token, user, contact, addContact }) {
     if (file && file.type.startsWith('image/')) {
       setSelectedImage(file);
       const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+        setSelectedImage(e.target.result); // Base64 string olarak sakla
+      };
       reader.readAsDataURL(file);
     }
   };
