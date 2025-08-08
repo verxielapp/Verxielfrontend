@@ -147,19 +147,7 @@ export default function Chat({ token, user, contact, addContact }) {
       content: input
     });
     
-    // Mesajı local olarak ekle
-    const newMessage = {
-      fromId: myId,
-      toId: contactId,
-      from: { id: myId, displayName: user.displayName },
-      to: { id: contactId, displayName: contact.displayName },
-      content: input,
-      timestamp: new Date().toISOString()
-    };
-    
-    setMessages(prev => [...prev, newMessage]);
-    
-    // Socket ile mesaj gönder
+    // Socket ile mesaj gönder (local ekleme yapmıyoruz, socket'ten gelecek)
     if (socketRef.current && isConnected) {
       socketRef.current.emit('message', { 
         content: input, 
@@ -311,8 +299,33 @@ export default function Chat({ token, user, contact, addContact }) {
           console.log(`Message ${i}:`, { fromId, myId, isMe, name, content: msg.content });
           
           return (
-            <div key={i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ textAlign: isMe ? 'right' : 'left', margin: '2px 0' }}>
-              <b>{name}</b>: {msg.content}
+            <div key={i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ 
+              textAlign: isMe ? 'right' : 'left', 
+              margin: '8px 12px',
+              maxWidth: '70%',
+              alignSelf: isMe ? 'flex-end' : 'flex-start'
+            }}>
+              <div style={{
+                background: isMe ? '#a259e6' : '#fff',
+                color: isMe ? '#fff' : '#333',
+                padding: '10px 16px',
+                borderRadius: '18px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                border: isMe ? 'none' : '1px solid #e0e0e0',
+                wordWrap: 'break-word',
+                fontSize: '14px',
+                lineHeight: '1.4'
+              }}>
+                <div style={{ 
+                  fontSize: '12px', 
+                  opacity: 0.8, 
+                  marginBottom: '4px',
+                  fontWeight: 'bold'
+                }}>
+                  {name}
+                </div>
+                {msg.content}
+              </div>
             </div>
           );
         })}
