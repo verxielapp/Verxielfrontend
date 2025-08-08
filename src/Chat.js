@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
@@ -14,13 +14,13 @@ export default function Chat({ token, user, contact, addContact }) {
   // WebRTC arama state'leri - şimdilik kullanılmıyor
   // const [callType, setCallType] = useState(null); // 'audio' | 'video' | null
   // const [callModal, setCallModal] = useState(false); // gelen arama modalı
-  const [callIncoming, setCallIncoming] = useState(null); // { from, type }
+  // const [callIncoming, setCallIncoming] = useState(null); // { from, type }
   // const [inCall, setInCall] = useState(false);
-  const [remoteStream, setRemoteStream] = useState(null);
-  const [localStream, setLocalStream] = useState(null);
-  const pcRef = useRef();
-  const localVideoRef = useRef();
-  const remoteVideoRef = useRef();
+  // const [remoteStream, setRemoteStream] = useState(null);
+  // const [localStream, setLocalStream] = useState(null);
+  // const pcRef = useRef();
+  // const localVideoRef = useRef();
+  // const remoteVideoRef = useRef();
 
   // Kişi ekleme modalı için state (şimdilik kullanılmıyor)
   // const [showAddContact, setShowAddContact] = useState(false);
@@ -237,17 +237,17 @@ export default function Chat({ token, user, contact, addContact }) {
   //   socketRef.current.emit('call-end', { to: contact.id || contact._id });
   // }, [contact.id, contact._id]);
 
-  // Video elementlerini güncelle
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-    }
-  }, [localStream]);
-  useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-    }
-  }, [remoteStream]);
+  // Video elementlerini güncelle - şimdilik devre dışı
+  // useEffect(() => {
+  //   if (localVideoRef.current && localStream) {
+  //     localVideoRef.current.srcObject = localStream;
+  //   }
+  // }, [localStream]);
+  // useEffect(() => {
+  //   if (remoteVideoRef.current && remoteStream) {
+  //     remoteVideoRef.current.srcObject = remoteStream;
+  //   }
+  // }, [remoteStream]);
 
   // Kişi ekle fonksiyonu (şimdilik kullanılmıyor)
   // const handleAddContact = async (e) => {
