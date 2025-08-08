@@ -8,8 +8,11 @@ export default function Chat({ token, user, contact, addContact }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const socketRef = useRef();
   const scrollRef = useRef();
+  const fileInputRef = useRef();
 
   // WebRTC arama state'leri - şimdilik kullanılmıyor
   // const [callType, setCallType] = useState(null); // 'audio' | 'video' | null
@@ -136,7 +139,7 @@ export default function Chat({ token, user, contact, addContact }) {
 
   const sendMessage = e => {
     e.preventDefault();
-    if (!input.trim() || !isConnected) return;
+    if ((!input.trim() && !selectedImage) || !isConnected) return;
     
     const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
     const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
@@ -144,7 +147,8 @@ export default function Chat({ token, user, contact, addContact }) {
     console.log('Sending message:', {
       from: myId,
       to: contactId,
-      content: input
+      content: input,
+      hasImage: !!selectedImage
     });
     
     // Socket ile mesaj gönder (local ekleme yapmıyoruz, socket'ten gelecek)
@@ -152,11 +156,32 @@ export default function Chat({ token, user, contact, addContact }) {
       socketRef.current.emit('message', { 
         content: input, 
         to: contactId,
-        from: myId
+        from: myId,
+        image: selectedImage
       });
     }
     
     setInput('');
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Arama başlat - şimdilik devre dışı
@@ -275,9 +300,41 @@ export default function Chat({ token, user, contact, addContact }) {
           </div>
         </div>
         <div className="chat-actions">
-          {/* Arama butonları - şimdilik devre dışı */}
-          {/* <button onClick={() => startCall('audio')} className="chat-call-btn">📞</button> */}
-          {/* <button onClick={() => startCall('video')} className="chat-call-btn">📹</button> */}
+          <button 
+            style={{
+              background: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '16px',
+              marginRight: '8px'
+            }}
+            title="Sesli arama (yakında)"
+          >
+            📞
+          </button>
+          <button 
+            style={{
+              background: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+            title="Görüntülü arama (yakında)"
+          >
+            📹
+          </button>
         </div>
       </div>
       <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
@@ -324,20 +381,147 @@ export default function Chat({ token, user, contact, addContact }) {
                 }}>
                   {name}
                 </div>
-                {msg.content}
+                {msg.image && (
+                  <div style={{ marginBottom: '8px' }}>
+                    <img 
+                      src={msg.image} 
+                      alt="Gönderilen resim" 
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '200px',
+                        borderRadius: '8px',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  </div>
+                )}
+                {msg.content && (
+                  <div>{msg.content}</div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
-      <form onSubmit={sendMessage} style={{ display: 'flex', gap: 8, padding: 8, borderTop: '1px solid #eee', background: '#fafafa', margin: 0, boxSizing: 'border-box' }}>
+      {/* Resim Önizleme */}
+      {imagePreview && (
+        <div style={{ 
+          padding: '8px 12px', 
+          background: '#f0f0f0', 
+          borderTop: '1px solid #ddd',
+          position: 'relative'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            background: '#fff',
+            padding: '8px',
+            borderRadius: '8px',
+            border: '1px solid #ddd'
+          }}>
+            <img 
+              src={imagePreview} 
+              alt="Önizleme" 
+              style={{
+                width: '40px',
+                height: '40px',
+                objectFit: 'cover',
+                borderRadius: '4px'
+              }}
+            />
+            <span style={{ fontSize: '12px', color: '#666' }}>
+              Resim seçildi
+            </span>
+            <button 
+              onClick={removeImage}
+              style={{
+                background: '#ff4444',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '50%',
+                width: '20px',
+                height: '20px',
+                fontSize: '12px',
+                cursor: 'pointer',
+                marginLeft: 'auto'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={sendMessage} style={{ 
+        display: 'flex', 
+        gap: 8, 
+        padding: '12px', 
+        borderTop: '1px solid #eee', 
+        background: '#fafafa', 
+        margin: 0, 
+        boxSizing: 'border-box',
+        alignItems: 'center'
+      }}>
+        {/* Resim Seçme Butonu */}
+        <button 
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          style={{ 
+            background: '#fff', 
+            border: '1px solid #ddd', 
+            borderRadius: '50%', 
+            width: '40px', 
+            height: '40px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '18px'
+          }}
+          title="Resim ekle"
+        >
+          📷
+        </button>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageSelect}
+          style={{ display: 'none' }}
+        />
+        
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          style={{ flex: 1, borderRadius: 20, border: '1px solid #ccc', padding: '8px 16px', margin: 0 }}
-          placeholder="Mesaj yaz..."
+          style={{ 
+            flex: 1, 
+            borderRadius: 20, 
+            border: '1px solid #ccc', 
+            padding: '12px 16px', 
+            margin: 0,
+            fontSize: '14px'
+          }}
+          placeholder="Mesaj yaz veya resim ekle..."
         />
-        <button type="submit" style={{ borderRadius: 20, padding: '8px 20px', background: '#a259e6', color: '#fff', border: 'none', margin: 0 }}>Gönder</button>
+        
+        <button 
+          type="submit" 
+          style={{ 
+            borderRadius: 20, 
+            padding: '12px 24px', 
+            background: '#a259e6', 
+            color: '#fff', 
+            border: 'none', 
+            margin: 0,
+            fontSize: '14px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Gönder
+        </button>
       </form>
     </div>
   );
