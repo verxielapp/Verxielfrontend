@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "18"
+  SECRETS_SCAN_ENABLED = "false"
+  SECRETS_SCAN_OMIT_KEYS = "NODE_ENV,DB_BACKUP_INTERVAL"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

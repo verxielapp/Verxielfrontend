@@ -287,8 +287,9 @@ export default function Chat({ token, user, contact, addContact }) {
           </div>
         </div>
         <div className="chat-actions">
-          <button onClick={() => startCall('audio')} className="chat-call-btn">📞</button>
-          <button onClick={() => startCall('video')} className="chat-call-btn">📹</button>
+          {/* Arama butonları - şimdilik devre dışı */}
+          {/* <button onClick={() => startCall('audio')} className="chat-call-btn">📞</button> */}
+          {/* <button onClick={() => startCall('video')} className="chat-call-btn">📹</button> */}
         </div>
       </div>
       <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
