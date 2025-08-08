@@ -22,7 +22,7 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a4d2e 0%, #2d5a3d 50%, #3a7d5a 100%);
 }
 
 /* Header */
@@ -49,15 +49,15 @@ body {
   width: 45px;
   height: 45px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   padding: 8px;
-  box-shadow: 0 4px 15px rgba(162, 89, 230, 0.3);
+  box-shadow: 0 4px 15px rgba(45, 90, 61, 0.3);
 }
 
 .header-logo span {
   font-weight: 800;
   font-size: 28px;
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -127,7 +127,7 @@ body {
 }
 
 .desktop-nav-tab.active {
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   color: white;
   border-left-color: #fff;
 }
@@ -161,7 +161,7 @@ body {
 }
 
 .add-contact-btn {
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   color: white;
   border: none;
   border-radius: 50%;
@@ -174,12 +174,12 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(162, 89, 230, 0.3);
+  box-shadow: 0 4px 15px rgba(45, 90, 61, 0.3);
 }
 
 .add-contact-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.4);
+  box-shadow: 0 6px 20px rgba(45, 90, 61, 0.4);
 }
 
 /* Contact List */
@@ -204,13 +204,13 @@ body {
 }
 
 .contact-item:hover {
-  background: rgba(162, 89, 230, 0.1);
+  background: rgba(45, 90, 61, 0.1);
   transform: translateX(4px);
 }
 
 .contact-item.selected {
-  background: linear-gradient(135deg, rgba(162, 89, 230, 0.15), rgba(118, 75, 162, 0.15));
-  border-color: #a259e6;
+  background: linear-gradient(135deg, rgba(45, 90, 61, 0.15), rgba(58, 125, 90, 0.15));
+  border-color: #2d5a3d;
   font-weight: 600;
 }
 
@@ -224,25 +224,25 @@ body {
 }
 
 .contact-avatar-placeholder {
-  width: 45px;
-  height: 45px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   color: white;
   border: 3px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
 }
 
 .contact-name {
   flex: 1;
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
+  font-size: 17px;
+  font-weight: 600;
+  color: #2d5a3d;
 }
 
 /* Main Content Area */
@@ -279,10 +279,10 @@ body {
   display: flex;
   align-items: center;
   border-bottom: 1px solid #eee;
-  padding: 12px 16px;
-  gap: 12px;
+  padding: 16px 20px;
+  gap: 14px;
   justify-content: space-between;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2d5a3d 0%, #3a7d5a 100%);
   color: white;
   border-radius: 12px 12px 0 0;
 }
@@ -700,7 +700,7 @@ body {
 .auth-logo {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   border-radius: 50%;
   margin: 0 auto 24px;
   display: flex;
@@ -709,7 +709,7 @@ body {
   font-size: 32px;
   color: white;
   font-weight: bold;
-  box-shadow: 0 8px 25px rgba(162, 89, 230, 0.3);
+  box-shadow: 0 8px 25px rgba(45, 90, 61, 0.3);
 }
 
 .auth-title {
@@ -743,15 +743,15 @@ body {
 }
 
 .auth-input:focus {
-  border-color: #a259e6;
-  box-shadow: 0 0 0 4px rgba(162, 89, 230, 0.1);
+  border-color: #2d5a3d;
+  box-shadow: 0 0 0 4px rgba(45, 90, 61, 0.1);
   background: white;
 }
 
 .auth-button {
   width: 100%;
   padding: 18px 24px;
-  background: linear-gradient(135deg, #a259e6, #764ba2);
+  background: linear-gradient(135deg, #2d5a3d, #3a7d5a);
   color: white;
   border: none;
   border-radius: 16px;
@@ -759,7 +759,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(162, 89, 230, 0.3);
+  box-shadow: 0 6px 20px rgba(45, 90, 61, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -781,21 +781,21 @@ body {
 
 .auth-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(162, 89, 230, 0.4);
+  box-shadow: 0 8px 25px rgba(45, 90, 61, 0.4);
 }
 
 .auth-button.secondary {
   background: transparent;
-  color: #a259e6;
-  border: 2px solid #a259e6;
+  color: #2d5a3d;
+  border: 2px solid #2d5a3d;
   box-shadow: none;
 }
 
 .auth-button.secondary:hover {
-  background: #a259e6;
+  background: #2d5a3d;
   color: white;
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(162, 89, 230, 0.3);
+  box-shadow: 0 8px 25px rgba(45, 90, 61, 0.3);
 }
 
 /* Settings Modal */
