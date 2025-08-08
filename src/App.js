@@ -515,35 +515,72 @@ function App() {
 
         {/* Sidebar */}
         <aside className={`app-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
-          <div className="sidebar-header">
-            <h4>Kişiler</h4>
-            <button onClick={() => setShowAddContact(true)} className="add-contact-btn">
-              {Icons.add}
-            </button>
+          {/* Desktop Navigation Tabs */}
+          <div className="desktop-nav-tabs">
+            <div 
+              className={`desktop-nav-tab ${currentView === 'chat' ? 'active' : ''}`}
+              onClick={() => handleMobileNav('chat')}
+            >
+              <span>{Icons.chat}</span>
+              <span>Sohbet</span>
+            </div>
+            <div 
+              className={`desktop-nav-tab ${currentView === 'contacts' ? 'active' : ''}`}
+              onClick={() => handleMobileNav('contacts')}
+            >
+              <span>{Icons.contacts}</span>
+              <span>Kişiler</span>
+            </div>
+            <div 
+              className={`desktop-nav-tab ${currentView === 'friend-requests' ? 'active' : ''}`}
+              onClick={() => handleMobileNav('friend-requests')}
+            >
+              <span>🤝</span>
+              <span>İstekler</span>
+            </div>
+            <div 
+              className={`desktop-nav-tab ${currentView === 'profile' ? 'active' : ''}`}
+              onClick={() => handleMobileNav('profile')}
+            >
+              <span>{Icons.profile}</span>
+              <span>Profil</span>
+            </div>
           </div>
-          
-          <ul className="contact-list">
-            {Array.isArray(contacts) && contacts.map(contact => (
-              <li
-                key={contact.id || contact._id}
-                className={`contact-item ${selectedContact && (selectedContact.id || selectedContact._id) === (contact.id || contact._id) ? 'selected' : ''}`}
-                onClick={() => {
-                  setSelectedContact(contact);
-                  setCurrentView('chat');
-                  closeMobileMenu();
-                }}
-              >
-                {contact.avatarUrl ? (
-                  <img src={contact.avatarUrl} alt={contact.displayName} className="contact-avatar" />
-                ) : (
-                  <div className="contact-avatar-placeholder">
-                    {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
-                    </div>
-                  )}
-                <div className="contact-name">{contact.displayName || contact.email}</div>
-                </li>
-              ))}
-            </ul>
+
+          {/* Contacts Section */}
+          {currentView === 'chat' && (
+            <>
+              <div className="sidebar-header">
+                <h4>Kişiler</h4>
+                <button onClick={() => setShowAddContact(true)} className="add-contact-btn">
+                  {Icons.add}
+                </button>
+              </div>
+              
+              <ul className="contact-list">
+                {Array.isArray(contacts) && contacts.map(contact => (
+                  <li
+                    key={contact.id || contact._id}
+                    className={`contact-item ${selectedContact && (selectedContact.id || selectedContact._id) === (contact.id || contact._id) ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedContact(contact);
+                      setCurrentView('chat');
+                      closeMobileMenu();
+                    }}
+                  >
+                    {contact.avatarUrl ? (
+                      <img src={contact.avatarUrl} alt={contact.displayName} className="contact-avatar" />
+                    ) : (
+                      <div className="contact-avatar-placeholder">
+                        {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
+                      </div>
+                    )}
+                    <div className="contact-name">{contact.displayName || contact.email}</div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </aside>
 
         {/* Main Content Area */}

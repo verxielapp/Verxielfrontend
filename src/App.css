@@ -94,10 +94,53 @@ body {
   width: 280px;
   background: #fafafa;
   border-right: 1px solid #e1e5e9;
-  padding: 24px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
+}
+
+/* Desktop Navigation Tabs */
+.desktop-nav-tabs {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-bottom: 1px solid #e1e5e9;
+  padding: 0;
+}
+
+.desktop-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+  color: #666;
+  font-weight: 500;
+}
+
+.desktop-nav-tab:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
+.desktop-nav-tab.active {
+  background: linear-gradient(135deg, #a259e6, #764ba2);
+  color: white;
+  border-left-color: #fff;
+}
+
+.desktop-nav-tab span:first-child {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+
+.desktop-nav-tab span:last-child {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 /* Sidebar Header */
@@ -106,7 +149,7 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  padding-bottom: 16px;
+  padding: 24px 24px 16px 24px;
   border-bottom: 2px solid #e1e5e9;
 }
 
@@ -142,7 +185,7 @@ body {
 /* Contact List */
 .contact-list {
   list-style: none;
-  padding: 0;
+  padding: 0 24px 24px 24px;
   margin: 0;
   flex: 1;
   overflow-y: auto;
@@ -997,6 +1040,11 @@ body {
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
+  /* Hide desktop navigation on mobile */
+  .desktop-nav-tabs {
+    display: none;
+  }
+  
   /* Header Mobile */
   .app-header {
     padding: 0 16px;
