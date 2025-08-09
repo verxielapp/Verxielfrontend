@@ -582,11 +582,19 @@ body {
 
 /* Profile Sidebar */
 .profile-sidebar {
-  width: 320px;
-  background: #fafafa;
-  border-left: 1px solid #e1e5e9;
+  width: 100%;
+  background: #ffffff;
+  border-left: none;
   padding: 24px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.app-container.dark-mode .profile-sidebar {
+  background: #0b141a;
 }
 
 .profile-header {
@@ -596,6 +604,12 @@ body {
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 2px solid #e1e5e9;
+  width: 100%;
+  max-width: 400px;
+}
+
+.app-container.dark-mode .profile-header {
+  border-bottom: 2px solid #2a3942;
 }
 
 .profile-header h3 {
@@ -603,6 +617,10 @@ body {
   font-weight: 700;
   color: #333;
   margin: 0;
+}
+
+.app-container.dark-mode .profile-header h3 {
+  color: #e9edef;
 }
 
 .back-btn {
@@ -624,6 +642,8 @@ body {
 .profile-info {
   text-align: center;
   margin-bottom: 32px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .profile-avatar {
@@ -661,9 +681,17 @@ body {
   margin-bottom: 8px;
 }
 
+.app-container.dark-mode .profile-info h4 {
+  color: #e9edef;
+}
+
 .profile-info p {
   color: #666;
   font-size: 16px;
+}
+
+.app-container.dark-mode .profile-info p {
+  color: #8696a0;
 }
 
 .profile-stats {
@@ -671,6 +699,13 @@ body {
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.app-container.dark-mode .profile-stats {
+  background: #202c33;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .stat-item {
@@ -690,10 +725,18 @@ body {
   color: #333;
 }
 
+.app-container.dark-mode .stat-label {
+  color: #e9edef;
+}
+
 .stat-value {
   font-weight: 700;
-  color: #a259e6;
+  color: #007bff;
   font-size: 18px;
+}
+
+.app-container.dark-mode .stat-value {
+  color: #00a884;
 }
 
 /* Modal Styles */
