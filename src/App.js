@@ -35,6 +35,7 @@ function App() {
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify'
   const [verificationEmail, setVerificationEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
@@ -335,6 +336,10 @@ function App() {
     setShowSettings(false);
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   // Mobile navigation
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -363,8 +368,8 @@ function App() {
           {authMode === 'login' && (
             <>
               <form onSubmit={handleAuth} className="auth-form">
-                <input
-                  type="email"
+                  <input
+                    type="email"
                   name="email"
                   placeholder="E-posta"
                   required
@@ -379,7 +384,7 @@ function App() {
                 />
                 <button type="submit" className="auth-button">
                   Giriş Yap
-                </button>
+                    </button>
               </form>
               
               <button onClick={() => {
@@ -391,7 +396,7 @@ function App() {
                 }
               }} className="auth-button secondary">
                 Email Doğrulama
-              </button>
+                    </button>
               
               <button onClick={() => setAuthMode('register')} className="auth-button secondary">
                 Kayıt Ol
@@ -416,11 +421,11 @@ function App() {
                   required
                   className="auth-input"
                 />
-                <input
-                  type="email"
+              <input
+                type="email"
                   name="email"
                   placeholder="E-posta"
-                  required
+                required
                   className="auth-input"
                 />
                 <input
@@ -432,8 +437,8 @@ function App() {
                 />
                 <button type="submit" className="auth-button">
                   Kayıt Ol
-                </button>
-              </form>
+              </button>
+            </form>
               
               <button onClick={() => setAuthMode('login')} className="auth-button secondary">
                 Giriş Yap
@@ -473,16 +478,16 @@ function App() {
               
               <button onClick={() => setAuthMode('login')} className="auth-button secondary">
                 Giriş Yap
-              </button>
+          </button>
             </>
           )}
-          </div>
         </div>
+      </div>
     );
   }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
       {/* Mobile Navigation Overlay */}
       {isMobileMenuOpen && (
         <div className="mobile-nav-overlay open" onClick={closeMobileMenu}></div>
@@ -493,10 +498,13 @@ function App() {
         <div className="header-logo">
           <img src="/logo192.png" alt="Verxiel" />
           <span>Verxiel</span>
-            </div>
+          </div>
         
         <div className="header-user">
           <span>{user.displayName || user.email}</span>
+          <button onClick={toggleTheme} className="theme-toggle-btn">
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
           <button onClick={handleSettings} className="app-settings-btn">
             {Icons.settings}
           </button>
@@ -579,8 +587,8 @@ function App() {
                   </li>
                 ))}
               </ul>
-            </>
-          )}
+          </>
+        )}
         </aside>
 
         {/* Main Content Area */}
@@ -593,7 +601,7 @@ function App() {
                 <h2>Kişiler</h2>
                 <button onClick={() => setShowAddContact(true)} className="add-contact-btn mobile">
                   {Icons.add}
-                    </button>
+          </button>
                   </div>
               <ul className="contact-list">
                 {Array.isArray(contacts) && contacts.map(contact => (
@@ -672,7 +680,7 @@ function App() {
         title="Kişi Ekle"
       >
         {Icons.add}
-      </button>
+          </button>
 
       {/* Add Contact Modal */}
             {showAddContact && (
@@ -707,7 +715,7 @@ function App() {
               <h2>Ayarlar</h2>
               <button onClick={closeSettings} className="app-settings-close-btn">
                 {Icons.close}
-                </button>
+        </button>
                 </div>
             
             <div className="app-settings-sections">
@@ -766,8 +774,8 @@ function App() {
                 </button>
           </div>
         </div>
-        </div>
-      )}
+          </div>
+        )}
       </div>
     );
   }

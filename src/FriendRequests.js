@@ -78,10 +78,8 @@ export default function FriendRequests({ token, user, onBack }) {
   // İsteği yanıtla (kabul et/reddet)
   const respondToRequest = async (requestId, action) => {
     try {
-      await axios.post(`${API_BASE_URL}/friend-requests/respond`, {
-        requestId,
-        action
-      }, {
+      const endpoint = action === 'accept' ? 'accept' : 'reject';
+      await axios.post(`${API_BASE_URL}/friend-requests/${requestId}/${endpoint}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -96,7 +94,7 @@ export default function FriendRequests({ token, user, onBack }) {
   // İsteği iptal et
   const cancelRequest = async (requestId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/friend-requests/${requestId}`, {
+      await axios.post(`${API_BASE_URL}/friend-requests/${requestId}/cancel`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

@@ -22,7 +22,12 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #3498db 100%);
+  background: #f0f2f5;
+  transition: all 0.3s ease;
+}
+
+.app-container.dark-mode {
+  background: #111b21;
 }
 
 /* Header */
@@ -70,6 +75,36 @@ body {
   gap: 16px;
 }
 
+.theme-toggle-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+.theme-toggle-btn:hover {
+  background: #0056b3;
+  transform: none;
+  box-shadow: none;
+}
+
+.app-container.dark-mode .theme-toggle-btn {
+  background: #00a884;
+}
+
+.app-container.dark-mode .theme-toggle-btn:hover {
+  background: #008f72;
+}
+
 .header-user span {
   font-size: 16px;
   font-weight: 600;
@@ -91,79 +126,105 @@ body {
 
 /* Sidebar */
 .app-sidebar {
-  width: 400px;
-  background: #111b21;
-  border-right: 1px solid #2a3942;
+  width: 80px;
+  background: #ffffff;
+  border-right: 1px solid #e1e5e9;
   padding: 0;
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
 }
 
+.app-container.dark-mode .app-sidebar {
+  background: #111b21;
+  border-right: 1px solid #2a3942;
+}
+
 /* Desktop Navigation Tabs */
 .desktop-nav-tabs {
   display: flex;
   flex-direction: column;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e1e5e9;
+  padding: 0;
+}
+
+.app-container.dark-mode .desktop-nav-tabs {
   background: #202c33;
   border-bottom: 1px solid #2a3942;
-  padding: 0;
 }
 
 .desktop-nav-tab {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
+  justify-content: center;
+  padding: 16px 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-left: 3px solid transparent;
-  color: #aebac1;
+  color: #666;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 20px;
+}
+
+.app-container.dark-mode .desktop-nav-tab {
+  color: #aebac1;
 }
 
 .desktop-nav-tab:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.app-container.dark-mode .desktop-nav-tab:hover {
   background: #2a3942;
   color: #d1d7db;
 }
 
 .desktop-nav-tab.active {
+  background: #007bff;
+  color: white;
+  border-left-color: #007bff;
+}
+
+.app-container.dark-mode .desktop-nav-tab.active {
   background: #00a884;
   color: white;
   border-left-color: #00a884;
 }
 
 .desktop-nav-tab span:first-child {
-  font-size: 20px;
+  font-size: 24px;
   width: 24px;
   text-align: center;
 }
 
 .desktop-nav-tab span:last-child {
-  font-size: 15px;
-  font-weight: 500;
+  display: none;
 }
 
 /* Sidebar Header */
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: 0;
-  padding: 16px 20px;
+  padding: 16px 8px;
+  border-bottom: 1px solid #e1e5e9;
+  background: #f8f9fa;
+}
+
+.app-container.dark-mode .sidebar-header {
   border-bottom: 1px solid #2a3942;
   background: #202c33;
 }
 
 .sidebar-header h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #e9edef;
-  margin: 0;
+  display: none;
 }
 
 .add-contact-btn {
-  background: #00a884;
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 50%;
@@ -179,10 +240,18 @@ body {
   box-shadow: none;
 }
 
+.app-container.dark-mode .add-contact-btn {
+  background: #00a884;
+}
+
 .add-contact-btn:hover {
-  background: #008f72;
+  background: #0056b3;
   transform: none;
   box-shadow: none;
+}
+
+.app-container.dark-mode .add-contact-btn:hover {
+  background: #008f72;
 }
 
 /* Contact List */
@@ -192,6 +261,11 @@ body {
   margin: 0;
   flex: 1;
   overflow-y: auto;
+  display: none;
+}
+
+.app-sidebar.expanded .contact-list {
+  display: block;
 }
 
 .contact-item {
@@ -255,14 +329,22 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: #ffffff;
+}
+
+.app-container.dark-mode .app-main-content {
   background: #0b141a;
 }
 
 .no-contact-message {
   margin: 40px;
-  color: #8696a0;
+  color: #666;
   text-align: center;
   font-size: 16px;
+}
+
+.app-container.dark-mode .no-contact-message {
+  color: #8696a0;
 }
 
 /* Chat Container */
@@ -271,7 +353,7 @@ body {
   height: 100%;
   min-height: 0;
   margin: 0;
-  background: #0b141a;
+  background: #ffffff;
   border-radius: 0;
   box-shadow: none;
   display: flex;
@@ -279,16 +361,26 @@ body {
   padding: 0;
 }
 
+.app-container.dark-mode .chat-container {
+  background: #0b141a;
+}
+
 .chat-header {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #2a3942;
+  border-bottom: 1px solid #e1e5e9;
   padding: 12px 16px;
   gap: 12px;
   justify-content: space-between;
+  background: #f8f9fa;
+  color: #333;
+  border-radius: 0;
+}
+
+.app-container.dark-mode .chat-header {
+  border-bottom: 1px solid #2a3942;
   background: #202c33;
   color: #e9edef;
-  border-radius: 0;
 }
 
 .chat-contact-info {
@@ -327,11 +419,19 @@ body {
 .chat-contact-name {
   font-weight: 600;
   font-size: 16px;
+  color: #333;
+}
+
+.app-container.dark-mode .chat-contact-name {
   color: #e9edef;
 }
 
 .chat-contact-status {
   font-size: 12px;
+  color: #666;
+}
+
+.app-container.dark-mode .chat-contact-status {
   color: #8696a0;
 }
 
@@ -364,6 +464,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: #ffffff;
+}
+
+.app-container.dark-mode .chat-messages {
   background: #0b141a;
 }
 
@@ -376,12 +480,21 @@ body {
 
 .message.sent {
   align-self: flex-end;
-  background: #00a884;
+  background: #007bff;
   color: white;
+}
+
+.app-container.dark-mode .message.sent {
+  background: #00a884;
 }
 
 .message.received {
   align-self: flex-start;
+  background: #f1f3f4;
+  color: #333;
+}
+
+.app-container.dark-mode .message.received {
   background: #202c33;
   color: #e9edef;
 }
@@ -400,6 +513,11 @@ body {
   align-items: center;
   gap: 12px;
   padding: 16px;
+  border-top: 1px solid #e1e5e9;
+  background: #f8f9fa;
+}
+
+.app-container.dark-mode .chat-input-container {
   border-top: 1px solid #2a3942;
   background: #202c33;
 }
@@ -407,22 +525,33 @@ body {
 .chat-input {
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid #2a3942;
+  border: 1px solid #e1e5e9;
   border-radius: 24px;
   font-size: 16px;
   outline: none;
   transition: all 0.3s ease;
+  background: #ffffff;
+  color: #333;
+}
+
+.app-container.dark-mode .chat-input {
+  border: 1px solid #2a3942;
   background: #2a3942;
   color: #e9edef;
 }
 
 .chat-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.app-container.dark-mode .chat-input:focus {
   border-color: #00a884;
   box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.1);
 }
 
 .chat-send-btn {
-  background: #00a884;
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 50%;
@@ -437,10 +566,18 @@ body {
   box-shadow: none;
 }
 
+.app-container.dark-mode .chat-send-btn {
+  background: #00a884;
+}
+
 .chat-send-btn:hover {
-  background: #008f72;
+  background: #0056b3;
   transform: none;
   box-shadow: none;
+}
+
+.app-container.dark-mode .chat-send-btn:hover {
+  background: #008f72;
 }
 
 /* Profile Sidebar */
