@@ -1666,6 +1666,19 @@ body {
   }
 }
 
+/* Icon Styles */
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.add-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 /* Mobile Bottom Navigation */
 .mobile-bottom-nav {
   display: none;

@@ -4,20 +4,27 @@ import Chat from './Chat';
 import FriendRequests from './FriendRequests';
 import './App.css';
 
-// Icons için basit emoji kullanımı
+// Icon imports
+import addPeopleIcon from '../icon/addpeople.png';
+import profileIcon from '../icon/profileicon.png';
+import messagePaneIcon from '../icon/messagepaneicon.png';
+import logoIcon from '../icon/logo.png';
+
+// Icons için import edilen dosyalar
 const Icons = {
   menu: '☰',
   search: '🔍',
-  add: '➕',
-  chat: '💬',
+  add: addPeopleIcon,
+  chat: messagePaneIcon,
   contacts: '👥',
-  profile: '👤',
+  profile: profileIcon,
   settings: '⚙️',
   logout: '🚪',
   back: '←',
   send: '📤',
   call: '📞',
-  close: '✕'
+  close: '✕',
+  logo: logoIcon
 };
 
 function App() {
@@ -529,14 +536,14 @@ function App() {
               className={`desktop-nav-tab ${currentView === 'chat' ? 'active' : ''}`}
               onClick={() => handleMobileNav('chat')}
             >
-              <span>{Icons.chat}</span>
+              <span><img src={Icons.chat} alt="Chat" className="nav-icon" /></span>
               <span>Sohbet</span>
             </div>
             <div 
               className={`desktop-nav-tab ${currentView === 'contacts' ? 'active' : ''}`}
               onClick={() => handleMobileNav('contacts')}
             >
-              <span>{Icons.contacts}</span>
+              <span><img src={Icons.contacts} alt="Contacts" className="nav-icon" /></span>
               <span>Kişiler</span>
             </div>
             <div 
@@ -550,7 +557,7 @@ function App() {
               className={`desktop-nav-tab ${currentView === 'profile' ? 'active' : ''}`}
               onClick={() => handleMobileNav('profile')}
             >
-              <span>{Icons.profile}</span>
+              <span><img src={Icons.profile} alt="Profile" className="nav-icon" /></span>
               <span>Profil</span>
             </div>
           </div>
@@ -561,7 +568,7 @@ function App() {
               <div className="sidebar-header">
                 <h4>Kişiler</h4>
                 <button onClick={() => setShowAddContact(true)} className="add-contact-btn">
-                  {Icons.add}
+                  <img src={Icons.add} alt="Add Contact" className="add-icon" />
                 </button>
               </div>
               
@@ -599,9 +606,9 @@ function App() {
             <div className="contacts-view">
               <div className="contacts-header">
                 <h2>Kişiler</h2>
-                <button onClick={() => setShowAddContact(true)} className="add-contact-btn mobile">
-                  {Icons.add}
-          </button>
+                                <button onClick={() => setShowAddContact(true)} className="add-contact-btn mobile">
+                  <img src={Icons.add} alt="Add Contact" className="add-icon" />
+                </button>
                   </div>
               <ul className="contact-list">
                 {Array.isArray(contacts) && contacts.map(contact => (
@@ -647,14 +654,14 @@ function App() {
           className={`mobile-bottom-nav-item ${currentView === 'chat' ? 'active' : ''}`}
           onClick={() => handleMobileNav('chat')}
         >
-          <span>{Icons.chat}</span>
+          <span><img src={Icons.chat} alt="Chat" className="nav-icon" /></span>
           <span>Sohbet</span>
           </div>
         <div 
           className={`mobile-bottom-nav-item ${currentView === 'contacts' ? 'active' : ''}`}
           onClick={() => handleMobileNav('contacts')}
         >
-          <span>{Icons.contacts}</span>
+          <span><img src={Icons.contacts} alt="Contacts" className="nav-icon" /></span>
           <span>Kişiler</span>
         </div>
         <div 
@@ -668,7 +675,7 @@ function App() {
           className={`mobile-bottom-nav-item ${currentView === 'profile' ? 'active' : ''}`}
           onClick={() => handleMobileNav('profile')}
         >
-          <span>{Icons.profile}</span>
+          <span><img src={Icons.profile} alt="Profile" className="nav-icon" /></span>
           <span>Profil</span>
       </div>
       </nav>
@@ -679,7 +686,7 @@ function App() {
         onClick={() => setShowAddContact(true)}
         title="Kişi Ekle"
       >
-        {Icons.add}
+        <img src={Icons.add} alt="Add Contact" className="add-icon" />
           </button>
 
       {/* Add Contact Modal */}
