@@ -5,10 +5,10 @@ import FriendRequests from './FriendRequests';
 import './App.css';
 
 // Icon imports
-import addPeopleIcon from '../icon/addpeople.png';
-import profileIcon from '../icon/profileicon.png';
-import messagePaneIcon from '../icon/messagepaneicon.png';
-import logoIcon from '../icon/logo.png';
+import addPeopleIcon from './icon/addpeople.png';
+import profileIcon from './icon/profileicon.png';
+import messagePaneIcon from './icon/messagepaneicon.png';
+import logoIcon from './icon/logo.png';
 
 // Icons için import edilen dosyalar
 const Icons = {
