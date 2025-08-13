@@ -46,7 +46,6 @@ function App() {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   
   const socketRef = useRef();
 
@@ -94,17 +93,17 @@ function App() {
     
     socketRef.current.on('connect', () => {
       console.log('Socket connected!');
-      setIsConnected(true);
+      // setIsConnected(true); // Removed as per edit hint
     });
     
     socketRef.current.on('disconnect', () => {
       console.log('Socket disconnected!');
-      setIsConnected(false);
+      // setIsConnected(false); // Removed as per edit hint
     });
     
     socketRef.current.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
-      setIsConnected(false);
+      // setIsConnected(false); // Removed as per edit hint
     });
     
     // Contacts güncellendiğinde
@@ -241,11 +240,15 @@ function App() {
   // Kişi ekle
   const addContact = async (email) => {
     try {
+      console.log('=== ADD CONTACT START ===');
       console.log('Adding contact with email:', email);
       console.log('Current user email:', user?.email);
+      console.log('Current user ID:', user?.id);
+      console.log('Current token:', token ? 'Token exists' : 'No token');
       
       // Kendini ekleme kontrolü
       if (email === user?.email) {
+        console.log('User trying to add themselves');
         setAddContactMsg('Kendini ekleyemezsin!');
         return;
       }
@@ -268,8 +271,13 @@ function App() {
       
       // Kişi listesini yenile
       await loadContacts();
+      console.log('=== ADD CONTACT SUCCESS ===');
     } catch (err) {
+      console.error('=== ADD CONTACT ERROR ===');
       console.error('Add contact error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      
       const errorMessage = err.response?.data?.message || 'Kişi eklenemedi!';
       setAddContactMsg(errorMessage);
       
@@ -303,11 +311,15 @@ function App() {
   // Bilinmeyen kişi ile sohbet başlat
   const startChatWithUnknown = async (email) => {
     try {
+      console.log('=== START CHAT WITH UNKNOWN START ===');
       console.log('Starting chat with unknown user:', email);
       console.log('Current user email:', user?.email);
+      console.log('Current user ID:', user?.id);
+      console.log('Current token:', token ? 'Token exists' : 'No token');
       
       // Kendini ekleme kontrolü
       if (email === user?.email) {
+        console.log('User trying to add themselves');
         setAddContactMsg('Kendini ekleyemezsin!');
         return;
       }
@@ -338,8 +350,13 @@ function App() {
       
       // Kişi listesini yenile
       await loadContacts();
+      console.log('=== START CHAT WITH UNKNOWN SUCCESS ===');
     } catch (err) {
+      console.error('=== START CHAT WITH UNKNOWN ERROR ===');
       console.error('Start chat with unknown error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      
       const errorMessage = err.response?.data?.message || 'Kişi bulunamadı!';
       
       // Eğer kişi zaten varsa, direkt sohbet başlat
