@@ -10,6 +10,7 @@ export default function Chat({ token, user, contact, addContact }) {
   const [isConnected, setIsConnected] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const socketRef = useRef();
   const scrollRef = useRef();
   const fileInputRef = useRef();
@@ -101,7 +102,7 @@ export default function Chat({ token, user, contact, addContact }) {
           // Bildirim göster
           if (window.Notification && Notification.permission === 'granted') {
             new Notification(msg.from?.displayName || 'Yeni Mesaj', {
-              body: msg.content,
+              body: msg.content || 'Resim gönderildi',
               icon: contact.avatarUrl || '/logo192.png'
             });
           }
@@ -137,39 +138,67 @@ export default function Chat({ token, user, contact, addContact }) {
     }
   }, [messages]);
 
-  const sendMessage = e => {
+  const sendMessage = async (e) => {
     e.preventDefault();
     if ((!input.trim() && !selectedImage) || !isConnected) return;
     
-    const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
-    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+    setIsLoading(true);
     
-    console.log('Sending message:', {
-      from: myId,
-      to: contactId,
-      content: input,
-      hasImage: !!selectedImage
-    });
-    
-    // Socket ile mesaj gönder (local ekleme yapmıyoruz, socket'ten gelecek)
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit('message', { 
-        content: input, 
-        to: contactId,
+    try {
+      const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+      const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+      
+      console.log('Sending message:', {
         from: myId,
-        image: selectedImage,
-        type: selectedImage ? 'image' : 'text'
+        to: contactId,
+        content: input,
+        hasImage: !!selectedImage
       });
+      
+      // Socket ile mesaj gönder
+      if (socketRef.current && isConnected) {
+        socketRef.current.emit('message', { 
+          content: input.trim() || null, 
+          to: contactId,
+          from: myId,
+          image: selectedImage,
+          type: selectedImage ? 'image' : 'text'
+        });
+        
+        // Mesajı local olarak ekle (socket'ten gelene kadar)
+        const tempMessage = {
+          id: Date.now(),
+          content: input.trim() || null,
+          image: selectedImage,
+          fromId: myId,
+          toId: contactId,
+          from: { id: myId, displayName: 'Sen' },
+          timestamp: new Date().toISOString(),
+          type: selectedImage ? 'image' : 'text'
+        };
+        
+        setMessages(prev => [...prev, tempMessage]);
+      }
+      
+      setInput('');
+      setSelectedImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setInput('');
-    setSelectedImage(null);
-    setImagePreview(null);
   };
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
+      // Dosya boyutu kontrolü (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Resim dosyası 5MB\'dan küçük olmalıdır!');
+        return;
+      }
+      
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -177,6 +206,8 @@ export default function Chat({ token, user, contact, addContact }) {
         setSelectedImage(e.target.result); // Base64 string olarak sakla
       };
       reader.readAsDataURL(file);
+    } else if (file) {
+      alert('Lütfen geçerli bir resim dosyası seçin!');
     }
   };
 
@@ -226,6 +257,7 @@ export default function Chat({ token, user, contact, addContact }) {
   //   setLocalStream(stream);
   //   stream.getTracks().forEach(track => pc.addTrack(track, stream));
   //   pc.ontrack = (e) => {
+  //     setRemoteStream(e.streams[0]);
   //     setRemoteStream(e.streams[0]);
   //   };
   //   pc.onicecandidate = (e) => {
@@ -341,7 +373,18 @@ export default function Chat({ token, user, contact, addContact }) {
           </button>
         </div>
       </div>
-      <div ref={scrollRef} className="chat-scroll" style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto', padding: 0, margin: 0, background: '#f9f9f9', display: 'flex', flexDirection: 'column' }}>
+      
+      <div ref={scrollRef} className="chat-scroll" style={{ 
+        flex: 1, 
+        minHeight: 0, 
+        maxHeight: '100%', 
+        overflowY: 'auto', 
+        padding: 0, 
+        margin: 0, 
+        background: '#f9f9f9', 
+        display: 'flex', 
+        flexDirection: 'column' 
+      }}>
         {(Array.isArray(messages) ? messages : []).map((msg, i) => {
           const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
           const fromId = (msg.fromId || msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
@@ -357,16 +400,16 @@ export default function Chat({ token, user, contact, addContact }) {
             name = msg.from.displayName || msg.from.username || msg.from.email;
           }
           
-          console.log(`Message ${i}:`, { fromId, myId, isMe, name, content: msg.content });
+          console.log(`Message ${i}:`, { fromId, myId, isMe, name, content: msg.content, image: msg.image });
           
           return (
-            <div key={i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ 
+            <div key={msg.id || i} className={`message-bubble ${isMe ? 'me' : 'other'}`} style={{ 
               textAlign: isMe ? 'right' : 'left', 
               margin: '8px 12px',
               maxWidth: '70%',
               alignSelf: isMe ? 'flex-end' : 'flex-start'
             }}>
-              <div style={{
+              <div className="message-bubble-content" style={{
                 background: isMe ? '#a259e6' : '#fff',
                 color: isMe ? '#fff' : '#333',
                 padding: '10px 16px',
@@ -394,7 +437,26 @@ export default function Chat({ token, user, contact, addContact }) {
                         maxWidth: '100%',
                         maxHeight: '200px',
                         borderRadius: '8px',
-                        objectFit: 'cover'
+                        objectFit: 'cover',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        // Resmi büyük göster
+                        const newWindow = window.open();
+                        newWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Resim Görüntüle</title>
+                              <style>
+                                body { margin: 0; padding: 20px; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                                img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+                              </style>
+                            </head>
+                            <body>
+                              <img src="${msg.image}" alt="Resim" />
+                            </body>
+                          </html>
+                        `);
                       }}
                     />
                   </div>
@@ -402,20 +464,26 @@ export default function Chat({ token, user, contact, addContact }) {
                 {msg.content && (
                   <div>{msg.content}</div>
                 )}
+                {!msg.content && !msg.image && (
+                  <div style={{ fontStyle: 'italic', opacity: 0.7 }}>
+                    {msg.type === 'image' ? 'Resim gönderildi' : 'Mesaj gönderildi'}
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
+      
       {/* Resim Önizleme */}
       {imagePreview && (
-        <div style={{ 
+        <div className="image-preview-container" style={{ 
           padding: '8px 12px', 
           background: '#f0f0f0', 
           borderTop: '1px solid #ddd',
           position: 'relative'
         }}>
-          <div style={{ 
+          <div className="image-preview-content" style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '8px',
@@ -439,6 +507,7 @@ export default function Chat({ token, user, contact, addContact }) {
             </span>
             <button 
               onClick={removeImage}
+              className="image-preview-remove"
               style={{
                 background: '#ff4444',
                 color: '#fff',
@@ -457,7 +526,7 @@ export default function Chat({ token, user, contact, addContact }) {
         </div>
       )}
 
-      <form onSubmit={sendMessage} style={{ 
+      <form onSubmit={sendMessage} className="chat-input-container" style={{ 
         display: 'flex', 
         gap: 8, 
         padding: '12px', 
@@ -481,7 +550,9 @@ export default function Chat({ token, user, contact, addContact }) {
             alignItems: 'center', 
             justifyContent: 'center',
             cursor: 'pointer',
-            fontSize: '18px'
+            fontSize: '18px',
+            minWidth: '40px',
+            minHeight: '40px'
           }}
           title="Resim ekle"
         >
@@ -499,32 +570,38 @@ export default function Chat({ token, user, contact, addContact }) {
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
+          className="chat-input"
           style={{ 
             flex: 1, 
             borderRadius: 20, 
             border: '1px solid #ccc', 
             padding: '12px 16px', 
             margin: 0,
-            fontSize: '14px'
+            fontSize: '14px',
+            minHeight: '40px'
           }}
           placeholder="Mesaj yaz veya resim ekle..."
         />
         
         <button 
           type="submit" 
+          className="chat-send-btn"
+          disabled={isLoading}
           style={{ 
             borderRadius: 20, 
             padding: '12px 24px', 
-            background: '#a259e6', 
+            background: isLoading ? '#ccc' : '#a259e6', 
             color: '#fff', 
             border: 'none', 
             margin: 0,
             fontSize: '14px',
             fontWeight: 'bold',
-            cursor: 'pointer'
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            minWidth: '40px',
+            minHeight: '40px'
           }}
         >
-          Gönder
+          {isLoading ? '⏳' : 'Gönder'}
         </button>
       </form>
     </div>

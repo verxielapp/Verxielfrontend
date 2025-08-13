@@ -722,7 +722,7 @@ function App() {
               <h2>Ayarlar</h2>
               <button onClick={closeSettings} className="app-settings-close-btn">
                 {Icons.close}
-        </button>
+              </button>
                 </div>
             
             <div className="app-settings-sections">
