@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import Chat from './Chat';
 import FriendRequests from './FriendRequests';
 import './App.css';
@@ -27,6 +28,8 @@ const Icons = {
   logo: logoIcon
 };
 
+const SOCKET_URL = 'https://verxiel.onrender.com';
+
 function App() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -43,6 +46,9 @@ function App() {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  
+  const socketRef = useRef();
 
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
@@ -75,6 +81,44 @@ function App() {
   //   setUser(null);
   //   console.log('LocalStorage temizlendi');
   // };
+
+  // Socket bağlantısı
+  useEffect(() => {
+    if (!token || !user) return;
+    
+    console.log('Connecting to socket:', SOCKET_URL);
+    socketRef.current = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling']
+    });
+    
+    socketRef.current.on('connect', () => {
+      console.log('Socket connected!');
+      setIsConnected(true);
+    });
+    
+    socketRef.current.on('disconnect', () => {
+      console.log('Socket disconnected!');
+      setIsConnected(false);
+    });
+    
+    socketRef.current.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setIsConnected(false);
+    });
+    
+    // Contacts güncellendiğinde
+    socketRef.current.on('contacts_updated', (updatedContacts) => {
+      console.log('Contacts updated via socket:', updatedContacts);
+      setContacts(updatedContacts);
+    });
+    
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [token, user]);
 
   // Token geçerliliğini kontrol et
   useEffect(() => {
@@ -129,22 +173,62 @@ function App() {
       const res = await axios.get('https://verxiel.onrender.com/api/auth/contacts', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Contacts loaded successfully:', res.data);
-      // API'den gelen veriyi kontrol et
-      const contactsData = Array.isArray(res.data) ? res.data : (Array.isArray(res.data.contacts) ? res.data.contacts : []);
-      setContacts(contactsData);
-      // İlk kişi yoksa otomatik seç
-      if (!selectedContact && contactsData.length > 0) {
-        setSelectedContact(contactsData[0]);
+      
+      console.log('Raw contacts response:', res.data);
+      
+      // API'den gelen veriyi kontrol et ve temizle
+      let contactsData = [];
+      if (Array.isArray(res.data)) {
+        contactsData = res.data;
+      } else if (res.data && Array.isArray(res.data.contacts)) {
+        contactsData = res.data.contacts;
+      } else if (res.data && typeof res.data === 'object') {
+        // Eğer response bir obje ise, içindeki array'i bul
+        const possibleArrays = Object.values(res.data).filter(val => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          contactsData = possibleArrays[0];
+        }
       }
+      
+      // Kişi verilerini temizle ve doğrula
+      const cleanContacts = contactsData
+        .filter(contact => contact && contact.id && contact.email)
+        .map(contact => ({
+          id: contact.id,
+          _id: contact.id, // MongoDB uyumluluğu için
+          email: contact.email,
+          displayName: contact.displayName || contact.username || contact.email,
+          username: contact.username || contact.email,
+          avatarUrl: contact.avatarUrl || ''
+        }));
+      
+      console.log('Cleaned contacts data:', cleanContacts);
+      setContacts(cleanContacts);
+      
+      // İlk kişi yoksa otomatik seç
+      if (!selectedContact && cleanContacts.length > 0) {
+        setSelectedContact(cleanContacts[0]);
+        console.log('Auto-selected first contact:', cleanContacts[0]);
+      }
+      
+      // Mevcut seçili kişi hala geçerli mi kontrol et
+      if (selectedContact && !cleanContacts.find(c => c.id === selectedContact.id)) {
+        console.log('Selected contact no longer exists, clearing selection');
+        setSelectedContact(null);
+      }
+      
     } catch (err) {
       console.error('Load contacts error:', err);
       console.error('Error response:', err.response);
       setContacts([]); // Hata durumunda boş array
+      
       // Eğer 500 hatası varsa, kullanıcıyı bilgilendir
       if (err.response?.status === 500) {
         console.log('Backend sunucu hatası - Lütfen daha sonra tekrar deneyin');
       }
+      
+      // Mevcut seçili kişiyi temizle
+      setSelectedContact(null);
     }
   }, [token, selectedContact]);
 
@@ -157,15 +241,48 @@ function App() {
   // Kişi ekle
   const addContact = async (email) => {
     try {
-      await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
+      console.log('Adding contact with email:', email);
+      console.log('Current user email:', user?.email);
+      
+      // Kendini ekleme kontrolü
+      if (email === user?.email) {
+        setAddContactMsg('Kendini ekleyemezsin!');
+        return;
+      }
+      
+      const response = await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('Contact added successfully:', response.data);
+      
+      // Kişi listesini güncelle
+      if (response.data.contacts) {
+        setContacts(response.data.contacts);
+        console.log('Updated contacts list:', response.data.contacts);
+      }
+      
       setAddContactMsg('Kişi eklendi!');
       setAddEmail('');
       setShowAddContact(false);
-      loadContacts(); // Kişi listesini yenile
+      
+      // Kişi listesini yenile
+      await loadContacts();
     } catch (err) {
-      setAddContactMsg(err.response?.data?.message || 'Kişi eklenemedi!');
+      console.error('Add contact error:', err);
+      const errorMessage = err.response?.data?.message || 'Kişi eklenemedi!';
+      setAddContactMsg(errorMessage);
+      
+      // Eğer kişi zaten varsa, direkt sohbet başlat
+      if (errorMessage.includes('zaten listenizde') || errorMessage.includes('Zaten ekli')) {
+        const existingContact = contacts.find(c => c.email === email);
+        if (existingContact) {
+          setSelectedContact(existingContact);
+          setAddEmail('');
+          setShowAddContact(false);
+          setAddContactMsg('Bu kişi zaten listenizde!');
+        }
+      }
     }
   };
 
@@ -186,31 +303,56 @@ function App() {
   // Bilinmeyen kişi ile sohbet başlat
   const startChatWithUnknown = async (email) => {
     try {
+      console.log('Starting chat with unknown user:', email);
+      console.log('Current user email:', user?.email);
+      
+      // Kendini ekleme kontrolü
+      if (email === user?.email) {
+        setAddContactMsg('Kendini ekleyemezsin!');
+        return;
+      }
+      
       // Önce kişiyi eklemeye çalış
-      await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
+      const response = await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Kişi listesini yenile
-      await loadContacts();
+      console.log('Contact added successfully:', response.data);
+      
+      // Kişi listesini güncelle
+      if (response.data.contacts) {
+        setContacts(response.data.contacts);
+        console.log('Updated contacts list:', response.data.contacts);
+      }
       
       // Eklenen kişiyi bul ve seç
-      const newContact = contacts.find(c => c.email === email);
+      const newContact = response.data.addedContact || response.data.contacts?.find(c => c.email === email);
       if (newContact) {
         setSelectedContact(newContact);
+        console.log('Selected new contact:', newContact);
       }
       
       setAddEmail('');
       setShowAddContact(false);
+      setAddContactMsg('Kişi eklendi ve sohbet başlatıldı!');
+      
+      // Kişi listesini yenile
+      await loadContacts();
     } catch (err) {
+      console.error('Start chat with unknown error:', err);
+      const errorMessage = err.response?.data?.message || 'Kişi bulunamadı!';
+      
       // Eğer kişi zaten varsa, direkt sohbet başlat
-      const existingContact = contacts.find(c => c.email === email);
-      if (existingContact) {
-        setSelectedContact(existingContact);
-        setAddEmail('');
-        setShowAddContact(false);
+      if (errorMessage.includes('zaten listenizde') || errorMessage.includes('Zaten ekli')) {
+        const existingContact = contacts.find(c => c.email === email);
+        if (existingContact) {
+          setSelectedContact(existingContact);
+          setAddEmail('');
+          setShowAddContact(false);
+          setAddContactMsg('Bu kişi zaten listenizde! Sohbet başlatıldı.');
+        }
       } else {
-        setAddContactMsg(err.response?.data?.message || 'Kişi bulunamadı!');
+        setAddContactMsg(errorMessage);
       }
     }
   };
@@ -690,29 +832,83 @@ function App() {
           </button>
 
       {/* Add Contact Modal */}
-            {showAddContact && (
+      {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h3 className="modal-title">Kişi Ekle</h3>
-                  <input
-                    type="email"
+            <div className="modal-description">
+              <p>E-posta adresi ile kişi ekleyin veya sohbet başlatın</p>
+            </div>
+            <input
+              type="email"
               placeholder="E-posta adresi"
-                    value={addEmail}
-                    onChange={(e) => setAddEmail(e.target.value)}
+              value={addEmail}
+              onChange={(e) => {
+                setAddEmail(e.target.value);
+                setAddContactMsg(''); // Input değiştiğinde mesajı temizle
+              }}
               className="modal-input"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (addEmail.trim()) {
+                    addContact(addEmail.trim());
+                  }
+                }
+              }}
             />
+            
+            {/* Hata mesajları */}
+            {addContactMsg && (
+              <div className={`modal-message ${addContactMsg.includes('başarılı') || addContactMsg.includes('zaten') ? 'success' : 'error'}`}>
+                {addContactMsg}
+              </div>
+            )}
+            
             <div className="modal-actions">
-              <button onClick={() => addContact(addEmail)} className="modal-button primary">
-                      Ekle
-                    </button>
-              <button onClick={() => startChatWithUnknown(addEmail)} className="modal-button secondary">
+              <button 
+                onClick={() => {
+                  if (addEmail.trim()) {
+                    addContact(addEmail.trim());
+                  } else {
+                    setAddContactMsg('Lütfen bir e-posta adresi girin!');
+                  }
+                }} 
+                className="modal-button primary"
+                disabled={!addEmail.trim()}
+              >
+                Kişi Ekle
+              </button>
+              <button 
+                onClick={() => {
+                  if (addEmail.trim()) {
+                    startChatWithUnknown(addEmail.trim());
+                  } else {
+                    setAddContactMsg('Lütfen bir e-posta adresi girin!');
+                  }
+                }} 
+                className="modal-button secondary"
+                disabled={!addEmail.trim()}
+              >
                 Sohbet Başlat
-                    </button>
-                  </div>
-            {addContactMsg && <div className="modal-message">{addContactMsg}</div>}
+              </button>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                onClick={() => {
+                  setShowAddContact(false);
+                  setAddEmail('');
+                  setAddContactMsg('');
+                }} 
+                className="modal-button cancel"
+              >
+                İptal
+              </button>
+            </div>
           </div>
-                    </div>
-                  )}
+        </div>
+      )}
 
       {/* Settings Modal */}
       {showSettings && (
