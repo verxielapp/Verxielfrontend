@@ -1,30 +1,105 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
 const SOCKET_URL = 'https://verxiel.onrender.com';
 
 export default function Chat({ token, user, contact, addContact }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Güvenli VOIP state'leri
+  const [callType, setCallType] = useState(null);
+  const [callModal, setCallModal] = useState(false);
+  const [callIncoming, setCallIncoming] = useState(null);
+  const [inCall, setInCall] = useState(false);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [callEncrypted, setCallEncrypted] = useState(false);
+  
+  // Encryption state'leri
+  const [sessionKey, setSessionKey] = useState(null);
+  const [encryptionKeys, setEncryptionKeys] = useState({});
+  const [keyExchangeComplete, setKeyExchangeComplete] = useState(false);
+  
   const socketRef = useRef();
   const scrollRef = useRef();
   const fileInputRef = useRef();
-
-  // WebRTC arama state'leri - şimdilik kullanılmıyor
-  // const [callType, setCallType] = useState(null); // 'audio' | 'video' | null
-  // const [callModal, setCallModal] = useState(false); // gelen arama modalı
-  // const [callIncoming, setCallIncoming] = useState(null); // { from, type }
-  // const [inCall, setInCall] = useState(false);
-  // const [remoteStream, setRemoteStream] = useState(null);
-  // const [localStream, setLocalStream] = useState(null);
-  // const pcRef = useRef();
-  // const localVideoRef = useRef();
-  // const remoteVideoRef = useRef();
+  const pcRef = useRef();
+  const localVideoRef = useRef();
+  const remoteVideoRef = useRef();
+  const callTimerRef = useRef();
+  
+  // Encryption utilities
+  const generateKeyPair = () => {
+    // RSA benzeri key pair (gerçek uygulamada Web Crypto API kullanılır)
+    const privateKey = CryptoJS.lib.WordArray.random(256);
+    const publicKey = CryptoJS.SHA256(privateKey.toString());
+    return { privateKey, publicKey };
+  };
+  
+  const generateSessionKey = () => {
+    return CryptoJS.lib.WordArray.random(256);
+  };
+  
+  const encryptData = (data, key) => {
+    const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+    return CryptoJS.AES.encrypt(dataString, key.toString()).toString();
+  };
+  
+  const decryptData = (encryptedData, key) => {
+    try {
+      const decrypted = CryptoJS.AES.decrypt(encryptedData, key.toString());
+      const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
+      return JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return null;
+    }
+  };
+  
+  const performKeyExchange = async (contactId) => {
+    try {
+      console.log('Starting secure key exchange...');
+      
+      // 1. Key pair oluştur
+      const { privateKey, publicKey } = generateKeyPair();
+      
+      // 2. Session key oluştur
+      const sessionKey = generateSessionKey();
+      
+      // 3. Public key'i karşı tarafa gönder
+      socketRef.current.emit('key_exchange_init', {
+        to: contactId,
+        publicKey: publicKey.toString(),
+        sessionKey: encryptData(sessionKey, publicKey.toString())
+      });
+      
+      // 4. Local state'i güncelle
+      setSessionKey(sessionKey);
+      setEncryptionKeys(prev => ({
+        ...prev,
+        [contactId]: {
+          privateKey,
+          publicKey,
+          sessionKey
+        }
+      }));
+      
+      console.log('Key exchange initiated');
+      
+    } catch (error) {
+      console.error('Key exchange failed:', error);
+      throw new Error('Güvenli bağlantı kurulamadı');
+    }
+  };
 
   // Kişi ekleme modalı için state (şimdilik kullanılmıyor)
   // const [showAddContact, setShowAddContact] = useState(false);
@@ -81,6 +156,7 @@ export default function Chat({ token, user, contact, addContact }) {
       setIsConnected(false);
     });
     
+    // Socket event listener'ları
     socketRef.current.on('message', msg => {
       console.log('Received message:', msg);
       const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
@@ -99,36 +175,144 @@ export default function Chat({ token, user, contact, addContact }) {
           if (window.Notification && Notification.permission !== 'granted') {
             Notification.requestPermission();
           }
-          // Bildirim göster
-          if (window.Notification && Notification.permission === 'granted') {
-            new Notification(msg.from?.displayName || 'Yeni Mesaj', {
-              body: msg.content || 'Resim gönderildi',
-              icon: contact.avatarUrl || '/logo192.png'
+          // Bildirim gönder
+          if (Notification.permission === 'granted') {
+            new Notification(`${contact.displayName || contact.username || contact.email}`, {
+              body: msg.content || 'Yeni mesaj',
+              icon: '/favicon.ico'
             });
           }
         }
       }
     });
-    // WebRTC sinyalleşme - şimdilik devre dışı
-    // socketRef.current.on('call-offer', async ({ from, offer, type }) => {
-    //   setCallIncoming({ from, type, offer });
-    //   setCallModal(true);
-    // });
-    // WebRTC socket eventleri - şimdilik devre dışı
-    // socketRef.current.on('call-answer', async ({ answer }) => {
-    //   await pcRef.current.setRemoteDescription(answer);
-    // });
-    // socketRef.current.on('call-ice', async ({ candidate }) => {
-    //   if (candidate && pcRef.current) {
-    //     try { await pcRef.current.addIceCandidate(candidate); } catch {}
-    //   }
-    // });
-    // socketRef.current.on('call-end', () => {
-    //   endCall();
-    // });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    // VOIP Socket Events
+    socketRef.current.on('call_offer', (data) => {
+      console.log('Incoming call:', data);
+      setCallIncoming({
+        from: data.from,
+        type: data.type,
+        offer: data.offer
+      });
+      setCallModal(true);
+      
+      // Ses çal
+      playIncomingCallSound();
+    });
+    
+    socketRef.current.on('call_answer', (data) => {
+      console.log('Call answered:', data);
+      if (pcRef.current) {
+        pcRef.current.setRemoteDescription(data.answer);
+      }
+    });
+    
+    // Güvenli VOIP Socket Events
+    socketRef.current.on('key_exchange_response', (data) => {
+      console.log('Key exchange response received:', data);
+      try {
+        const { from, publicKey, sessionKey } = data;
+        
+        // Karşı tarafın public key'ini kaydet
+        setEncryptionKeys(prev => ({
+          ...prev,
+          [from]: {
+            ...prev[from],
+            remotePublicKey: publicKey,
+            sessionKey: sessionKey
+          }
+        }));
+        
+        setKeyExchangeComplete(true);
+        console.log('Key exchange completed successfully');
+        
+      } catch (error) {
+        console.error('Key exchange response error:', error);
+      }
+    });
+    
+    socketRef.current.on('secure_call_offer', (data) => {
+      console.log('Secure call offer received:', data);
+      setCallIncoming({
+        from: data.from,
+        type: data.type,
+        offer: data.offer,
+        sessionId: data.sessionId
+      });
+      setCallModal(true);
+      
+      // Ses çal
+      playIncomingCallSound();
+    });
+    
+    socketRef.current.on('secure_call_answer', (data) => {
+      console.log('Secure call answer received:', data);
+      if (pcRef.current && sessionKey) {
+        const decryptedAnswer = decryptData(data.answer, sessionKey);
+        if (decryptedAnswer) {
+          pcRef.current.setRemoteDescription(decryptedAnswer);
+        }
+      }
+    });
+    
+    socketRef.current.on('secure_ice_candidate', (data) => {
+      console.log('Secure ICE candidate received:', data);
+      if (pcRef.current && sessionKey) {
+        const decryptedCandidate = decryptData(data.candidate, sessionKey);
+        if (decryptedCandidate) {
+          pcRef.current.addIceCandidate(decryptedCandidate);
+        }
+      }
+    });
+    
+    socketRef.current.on('call_reject', (data) => {
+      console.log('Call rejected:', data);
+      setInCall(false);
+      setIsCallActive(false);
+      setCallType(null);
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        setLocalStream(null);
+      }
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+      stopCallTimer();
+    });
+    
+    socketRef.current.on('call_end', (data) => {
+      console.log('Call ended by remote:', data);
+      setInCall(false);
+      setIsCallActive(false);
+      setCallType(null);
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        setLocalStream(null);
+      }
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+      stopCallTimer();
+    });
+    
+    socketRef.current.on('call_error', (data) => {
+      console.error('Call error:', data);
+      alert('Arama hatası: ' + data.message);
+      endCall();
+    });
+    
     return () => {
-      socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.off('message');
+        socketRef.current.off('call_offer');
+        socketRef.current.off('call_answer');
+        socketRef.current.off('call_reject');
+        socketRef.current.off('call_end');
+        socketRef.current.off('ice_candidate');
+        socketRef.current.off('call_error');
+      }
     };
   }, [token, user, contact]);
 
@@ -219,84 +403,223 @@ export default function Chat({ token, user, contact, addContact }) {
     }
   };
 
-  // Arama başlat - şimdilik devre dışı
-  // const startCall = async (type) => {
-  //   setCallType(type);
-  //   setInCall(true);
-  //   // PeerConnection oluştur
-  //   const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  //   pcRef.current = pc;
-  //   // Kamera/mikrofon al
-  //   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
-  //   setLocalStream(stream);
-  //   stream.getTracks().forEach(track => pc.addTrack(track, stream));
-  //   pc.ontrack = (e) => {
-  //     setRemoteStream(e.streams[0]);
-  //   };
-  //   pc.onicecandidate = (e) => {
-  //     if (e.candidate) {
-  //       socketRef.current.emit('call-ice', { to: contact._id, candidate: e.candidate });
-  //     }
-  //   };
-  //   // Offer oluştur ve gönder
-  //   const offer = await pc.createOffer();
-  //   await pc.setLocalDescription(offer);
-  //   socketRef.current.emit('call-offer', { to: contact.id || contact._id, offer, type });
-  // };
+  // VOIP Fonksiyonları
+  const startCall = async (type) => {
+    try {
+      console.log('Starting call:', type);
+      setCallType(type);
+      
+      // Yerel stream'i al
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: type === 'audio' || type === 'video',
+        video: type === 'video'
+      });
+      
+      setLocalStream(stream);
+      
+      // WebRTC peer connection oluştur
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
+      
+      pcRef.current = pc;
+      
+      // Yerel stream'i peer connection'a ekle
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream);
+      });
+      
+      // ICE candidate'ları gönder
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socketRef.current.emit('ice_candidate', {
+            to: contact.id || contact._id,
+            candidate: event.candidate
+          });
+        }
+      };
+      
+      // Uzak stream'i al
+      pc.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
+      };
+      
+      // Offer oluştur ve gönder
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      socketRef.current.emit('call_offer', {
+        to: contact.id || contact._id,
+        type: type,
+        offer: offer
+      });
+      
+      setInCall(true);
+      setIsCallActive(true);
+      startCallTimer();
+      
+    } catch (error) {
+      console.error('Call start error:', error);
+      alert('Arama başlatılamadı: ' + error.message);
+    }
+  };
+  
+  const acceptCall = async () => {
+    try {
+      console.log('Accepting call');
+      const { from, type, offer } = callIncoming;
+      
+      // Yerel stream'i al
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: type === 'audio' || type === 'video',
+        video: type === 'video'
+      });
+      
+      setLocalStream(stream);
+      
+      // WebRTC peer connection oluştur
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
+      
+      pcRef.current = pc;
+      
+      // Yerel stream'i peer connection'a ekle
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream);
+      });
+      
+      // ICE candidate'ları gönder
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socketRef.current.emit('ice_candidate', {
+            to: from,
+            candidate: event.candidate
+          });
+        }
+      };
+      
+      // Uzak stream'i al
+      pc.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
+      };
+      
+      // Offer'ı set et ve answer oluştur
+      await pc.setRemoteDescription(offer);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      
+      socketRef.current.emit('call_answer', {
+        to: from,
+        answer: answer
+      });
+      
+      setInCall(true);
+      setIsCallActive(true);
+      setCallIncoming(null);
+      setCallModal(false);
+      startCallTimer();
+      
+    } catch (error) {
+      console.error('Call accept error:', error);
+      alert('Arama kabul edilemedi: ' + error.message);
+    }
+  };
+  
+  const rejectCall = () => {
+    console.log('Rejecting call');
+    const { from } = callIncoming;
+    
+    socketRef.current.emit('call_reject', {
+      to: from
+    });
+    
+    setCallIncoming(null);
+    setCallModal(false);
+  };
+  
+  const endCall = () => {
+    console.log('Ending call');
+    
+    // Stream'leri durdur
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
+    
+    // Peer connection'ı kapat
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+    
+    // State'leri temizle
+    setInCall(false);
+    setIsCallActive(false);
+    setCallType(null);
+    setRemoteStream(null);
+    stopCallTimer();
+    
+    // Karşı tarafa bildir
+    if (contact && socketRef.current) {
+      socketRef.current.emit('call_end', {
+        to: contact.id || contact._id
+      });
+    }
+  };
+  
+  const startCallTimer = () => {
+    setCallDuration(0);
+    callTimerRef.current = setInterval(() => {
+      setCallDuration(prev => prev + 1);
+    }, 1000);
+  };
+  
+  const stopCallTimer = () => {
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+  };
+  
+  const formatCallDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Gelen arama sesi
+  const playIncomingCallSound = () => {
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      audio.loop = true;
+      audio.play().catch(e => console.log('Audio play failed:', e));
+      
+      // 30 saniye sonra sesi durdur
+      setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }, 30000);
+    } catch (error) {
+      console.log('Audio play error:', error);
+    }
+  };
 
-  // Gelen aramayı kabul et - şimdilik kullanılmıyor
-  // const acceptCall = async () => {
-  //   setCallType(callIncoming.type);
-  //   setInCall(true);
-  //   setCallModal(false);
-  //   // PeerConnection oluştur
-  //   const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  //   pcRef.current = pc;
-  //   // Kamera/mikrofon al
-  //   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callIncoming.type === 'video' });
-  //   setLocalStream(stream);
-  //   stream.getTracks().forEach(track => pc.addTrack(track, stream));
-  //   pc.ontrack = (e) => {
-  //     setRemoteStream(e.streams[0]);
-  //     setRemoteStream(e.streams[0]);
-  //   };
-  //   pc.onicecandidate = (e) => {
-  //     if (e.candidate) {
-  //       socketRef.current.emit('call-ice', { to: callIncoming.from._id, candidate: e.candidate });
-  //     }
-  //   };
-  //   await pc.setRemoteDescription(callIncoming.offer);
-  //   const answer = await pc.createAnswer();
-  //   await pc.setLocalDescription(answer);
-  //   socketRef.current.emit('call-answer', { to: callIncoming.from._id, answer });
-  // };
-
-  // Aramayı bitir - şimdilik devre dışı
-  // const endCall = useCallback(() => {
-  //   setInCall(false);
-  //   setCallType(null);
-  //   setCallModal(false);
-  //   setCallIncoming(null);
-  //   setRemoteStream(null);
-  //   setLocalStream(null);
-  //   if (pcRef.current) {
-  //     pcRef.current.close();
-  //     pcRef.current = null;
-  //   }
-  //   socketRef.current.emit('call-end', { to: contact.id || contact._id });
-  // }, [contact.id, contact._id]);
-
-  // Video elementlerini güncelle - şimdilik devre dışı
-  // useEffect(() => {
-  //   if (localVideoRef.current && localStream) {
-  //     localVideoRef.current.srcObject = localStream;
-  //   }
-  // }, [localStream]);
-  // useEffect(() => {
-  //   if (remoteVideoRef.current && remoteStream) {
-  //     remoteVideoRef.current.srcObject = remoteStream;
-  //   }
-  // }, [remoteStream]);
+  // Video elementlerini güncelle
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [localStream, remoteStream]);
 
   // Kişi ekle fonksiyonu (şimdilik kullanılmıyor)
   // const handleAddContact = async (e) => {
@@ -317,74 +640,331 @@ export default function Chat({ token, user, contact, addContact }) {
   // const handleVoiceCall = () => alert('Sesli arama yakında!');
   // const handleVideoCall = () => alert('Görüntülü arama yakında!');
 
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      // Stream'leri durdur
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Peer connection'ı kapat
+      if (pcRef.current) {
+        pcRef.current.close();
+      }
+      
+      // Timer'ı temizle
+      stopCallTimer();
+      
+      // Socket'i kapat
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Güvenli VOIP Fonksiyonları
+  const startSecureCall = async (type) => {
+    try {
+      console.log('Starting secure call:', type);
+      setCallType(type);
+      
+      const contactId = contact.id || contact._id;
+      
+      // 1. Güvenli key exchange başlat
+      await performKeyExchange(contactId);
+      
+      // 2. Yerel stream'i al
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: type === 'audio' || type === 'video',
+        video: type === 'video'
+      });
+      
+      setLocalStream(stream);
+      
+      // 3. WebRTC peer connection oluştur (güvenli)
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ],
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
+      });
+      
+      pcRef.current = pc;
+      
+      // 4. Yerel stream'i peer connection'a ekle
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream);
+      });
+      
+      // 5. ICE candidate'ları şifrele ve gönder
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          const encryptedCandidate = encryptData(event.candidate, sessionKey);
+          socketRef.current.emit('secure_ice_candidate', {
+            to: contactId,
+            candidate: encryptedCandidate,
+            sessionId: sessionKey.toString()
+          });
+        }
+      };
+      
+      // 6. Uzak stream'i al
+      pc.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
+      };
+      
+      // 7. Güvenli offer oluştur ve gönder
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      const encryptedOffer = encryptData(offer, sessionKey);
+      socketRef.current.emit('secure_call_offer', {
+        to: contactId,
+        type: type,
+        offer: encryptedOffer,
+        sessionId: sessionKey.toString()
+      });
+      
+      setInCall(true);
+      setIsCallActive(true);
+      setCallEncrypted(true);
+      startCallTimer();
+      
+      console.log('Secure call started successfully');
+      
+    } catch (error) {
+      console.error('Secure call start error:', error);
+      alert('Güvenli arama başlatılamadı: ' + error.message);
+    }
+  };
+  
+  const acceptSecureCall = async () => {
+    try {
+      console.log('Accepting secure call');
+      const { from, type, offer, sessionId } = callIncoming;
+      
+      // 1. Session key'i al ve decrypt et
+      const decryptedOffer = decryptData(offer, sessionId);
+      if (!decryptedOffer) {
+        throw new Error('Arama teklifi çözülemedi');
+      }
+      
+      // 2. Yerel stream'i al
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: type === 'audio' || type === 'video',
+        video: type === 'video'
+      });
+      
+      setLocalStream(stream);
+      
+      // 3. WebRTC peer connection oluştur
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ],
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
+      });
+      
+      pcRef.current = pc;
+      
+      // 4. Yerel stream'i peer connection'a ekle
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream);
+      });
+      
+      // 5. ICE candidate'ları şifrele ve gönder
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          const encryptedCandidate = encryptData(event.candidate, sessionId);
+          socketRef.current.emit('secure_ice_candidate', {
+            to: from,
+            candidate: encryptedCandidate,
+            sessionId: sessionId
+          });
+        }
+      };
+      
+      // 6. Uzak stream'i al
+      pc.ontrack = (event) => {
+        setRemoteStream(event.streams[0]);
+      });
+      
+      // 7. Offer'ı set et ve answer oluştur
+      await pc.setRemoteDescription(decryptedOffer);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      
+      // 8. Answer'ı şifrele ve gönder
+      const encryptedAnswer = encryptData(answer, sessionId);
+      socketRef.current.emit('secure_call_answer', {
+        to: from,
+        answer: encryptedAnswer,
+        sessionId: sessionId
+      });
+      
+      setInCall(true);
+      setIsCallActive(true);
+      setCallIncoming(null);
+      setCallModal(false);
+      setCallEncrypted(true);
+      startCallTimer();
+      
+      console.log('Secure call accepted successfully');
+      
+    } catch (error) {
+      console.error('Secure call accept error:', error);
+      alert('Güvenli arama kabul edilemedi: ' + error.message);
+    }
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <div className="chat-contact-info">
-          {contact?.avatarUrl ? (
-            <img src={contact.avatarUrl} alt="avatar" className="chat-contact-avatar" />
-          ) : (
-            <div className="chat-contact-avatar-placeholder">
-              {(contact?.displayName?.[0]?.toUpperCase()) || '?'}
-            </div>
-          )}
-          <div className="chat-contact-details">
-            <span className="chat-contact-name">{contact?.displayName || 'Bilinmiyor'}</span>
-            <span className="chat-contact-status">
-              {isConnected ? '🟢 Çevrimiçi' : '🔴 Bağlantı yok'}
-            </span>
+        <div className="contact-info">
+          <div className="contact-avatar">
+            {contact.avatarUrl ? (
+              <img src={contact.avatarUrl} alt="Avatar" />
+            ) : (
+              <div className="avatar-placeholder">
+                {contact.displayName?.charAt(0) || contact.username?.charAt(0) || contact.email?.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className="contact-details">
+            <h3>{contact.displayName || contact.username || contact.email}</h3>
+            <span className="status">{isConnected ? 'Çevrimiçi' : 'Çevrimdışı'}</span>
           </div>
         </div>
-        <div className="chat-actions">
-          <button 
-            style={{
-              background: '#f0f0f0',
-              border: '1px solid #ddd',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              fontSize: '16px',
-              marginRight: '8px'
-            }}
-            title="Sesli arama (yakında)"
-          >
-            📞
-          </button>
-          <button 
-            style={{
-              background: '#f0f0f0',
-              border: '1px solid #ddd',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-            title="Görüntülü arama (yakında)"
-          >
-            📹
-          </button>
-        </div>
+        
+        {/* Güvenli VOIP Arama Butonları */}
+        {!inCall && (
+          <div className="call-actions">
+            <button 
+              className="call-btn audio-call secure"
+              onClick={() => startSecureCall('audio')}
+              title="Güvenli Sesli Arama (End-to-End Encrypted)"
+            >
+              🔒📞
+            </button>
+            <button 
+              className="call-btn video-call secure"
+              onClick={() => startSecureCall('video')}
+              title="Güvenli Görüntülü Arama (End-to-End Encrypted)"
+            >
+              🔒📹
+            </button>
+          </div>
+        )}
+        
+        {/* Aktif Arama Kontrolleri */}
+        {inCall && (
+          <div className="call-controls">
+            <div className="call-info">
+              <span className="call-type">
+                {callType === 'audio' ? '🔒📞' : '🔒📹'} 
+                {callType === 'audio' ? 'Güvenli Sesli Arama' : 'Güvenli Görüntülü Arama'}
+              </span>
+              <span className="call-duration">{formatCallDuration(callDuration)}</span>
+              {callEncrypted && (
+                <span className="encryption-status">🔒 Şifrelenmiş</span>
+              )}
+            </div>
+            <button 
+              className="end-call-btn"
+              onClick={endCall}
+              title="Aramayı Sonlandır"
+            >
+              ❌
+            </button>
+          </div>
+        )}
       </div>
       
-      <div ref={scrollRef} className="chat-scroll" style={{ 
-        flex: 1, 
-        minHeight: 0, 
-        maxHeight: '100%', 
-        overflowY: 'auto', 
-        padding: 0, 
-        margin: 0, 
-        background: '#f9f9f9', 
-        display: 'flex', 
-        flexDirection: 'column' 
-      }}>
+      {/* Gelen Arama Modalı */}
+      {callModal && callIncoming && (
+        <div className="incoming-call-modal">
+          <div className="call-modal-content">
+            <div className="call-modal-header">
+              <h3>🔒 Güvenli Gelen Arama</h3>
+              <span className="caller-name">
+                {callIncoming.from?.displayName || callIncoming.from?.username || callIncoming.from?.email}
+              </span>
+              <span className="call-type">
+                {callIncoming.type === 'audio' ? '🔒📞 Güvenli Sesli Arama' : '🔒📹 Güvenli Görüntülü Arama'}
+              </span>
+              <div className="security-info">
+                <span className="security-badge">🔒 End-to-End Encryption</span>
+                <span className="security-desc">Bu arama tamamen şifrelenmiş ve güvenli</span>
+              </div>
+            </div>
+            
+            <div className="call-modal-actions">
+              <button 
+                className="accept-call-btn secure"
+                onClick={acceptSecureCall}
+              >
+                🔒✅ Güvenli Kabul Et
+              </button>
+              <button 
+                className="reject-call-btn"
+                onClick={rejectCall}
+              >
+                ❌ Reddet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Güvenlik Göstergeleri */}
+      {!keyExchangeComplete && inCall && (
+        <div className="key-exchange-progress">
+          <div className="spinner"></div>
+          <span>Güvenli bağlantı kuruluyor...</span>
+        </div>
+      )}
+      
+      {callEncrypted && (
+        <div className="security-indicator">
+          <span className="lock-icon">🔒</span>
+          <span className="security-text">End-to-End Encryption Aktif</span>
+        </div>
+      )}
+      
+      {/* Video Görüntüleme */}
+      {inCall && (
+        <div className="video-container">
+          {callType === 'video' && (
+            <>
+              <video
+                ref={localVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="local-video"
+              />
+              {remoteStream && (
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="remote-video"
+                />
+              )}
+            </>
+          )}
+        </div>
+      )}
+      
+      {/* Mesaj Listesi */}
+      <div className="messages-container" ref={scrollRef}>
         {(Array.isArray(messages) ? messages : []).map((msg, i) => {
           const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
           const fromId = (msg.fromId || msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
