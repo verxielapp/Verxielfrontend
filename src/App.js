@@ -49,15 +49,47 @@ function App() {
   
   const socketRef = useRef();
 
+  // JWT token'ın süresini kontrol et (client-side)
+  const isTokenExpired = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      return payload.exp < currentTime;
+    } catch (error) {
+      console.error('Token expiration check failed:', error);
+      return true; // Hata durumunda token'ı geçersiz say
+    }
+  };
+
   // Token geçerliliğini kontrol et
   const verifyToken = async (tokenToVerify) => {
     try {
       console.log('Verifying token:', tokenToVerify.substring(0, 20) + '...');
+      
+      // Önce client-side'da token süresini kontrol et
+      if (isTokenExpired(tokenToVerify)) {
+        console.log('Token expired on client-side check');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken('');
+        setUser(null);
+        return false;
+      }
+      
       const res = await axios.get('https://verxiel.onrender.com/api/verify-token', {
         headers: { Authorization: `Bearer ${tokenToVerify}` }
       });
       console.log('Token verification result:', res.data);
-      return res.data.valid === true; // Explicit boolean check
+      
+      if (res.data.valid === true) {
+        // Token geçerliyse localStorage'ı güncelle
+        localStorage.setItem('token', tokenToVerify);
+        if (res.data.user) {
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+        }
+        return true;
+      }
+      return false;
     } catch (err) {
       console.error('Token verification failed:', err.response?.data || err.message);
       // Token süresi dolmuşsa veya geçersizse false döndür
@@ -119,16 +151,16 @@ function App() {
     };
   }, [token, user]);
 
-  // Token geçerliliğini kontrol et
+    // Token geçerliliğini kontrol et
   useEffect(() => {
     const checkTokenValidity = async () => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
       
       console.log('Debug - Saved token:', savedToken ? savedToken.substring(0, 20) + '...' : 'NO TOKEN');
       console.log('Debug - Saved user:', savedUser);
       
-    if (savedToken && savedUser) {
+      if (savedToken && savedUser) {
         console.log('Checking token validity...');
         try {
           const isValid = await verifyToken(savedToken);
@@ -136,12 +168,12 @@ function App() {
           
           if (isValid === true) {
             console.log('Token is valid, setting user data');
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    } else {
+            setToken(savedToken);
+            setUser(JSON.parse(savedUser));
+          } else {
             console.log('Token is invalid, clearing data');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             setToken('');
             setUser(null);
           }
@@ -153,6 +185,8 @@ function App() {
           setToken('');
           setUser(null);
         }
+      } else {
+        console.log('No saved token or user data found');
       }
     };
     
@@ -219,6 +253,19 @@ function App() {
     } catch (err) {
       console.error('Load contacts error:', err);
       console.error('Error response:', err.response);
+      
+      // Token hatası varsa kullanıcıyı logout yap
+      if (err.response?.status === 401) {
+        console.log('Token expired during contacts load, logging out user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken('');
+        setUser(null);
+        setContacts([]);
+        setSelectedContact(null);
+        return;
+      }
+      
       setContacts([]); // Hata durumunda boş array
       
       // Eğer 500 hatası varsa, kullanıcıyı bilgilendir
@@ -388,8 +435,17 @@ function App() {
         const res = await axios.post('https://verxiel.onrender.com/api/auth/login', { email, password });
         const { token: newToken, user: userData } = res.data;
         
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(userData));
+        // LocalStorage'ı güvenli şekilde güncelle
+        try {
+          localStorage.setItem('token', newToken);
+          localStorage.setItem('user', JSON.stringify(userData));
+          console.log('Login successful, data saved to localStorage');
+        } catch (storageError) {
+          console.error('LocalStorage error:', storageError);
+          alert('Veri kaydedilemedi! Tarayıcı ayarlarını kontrol edin.');
+          return;
+        }
+        
         setToken(newToken);
         setUser(userData);
       } else if (authMode === 'register') {
@@ -426,8 +482,17 @@ function App() {
       const res = await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { email, code });
       const { token: newToken, user: userData } = res.data;
       
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userData));
+      // LocalStorage'ı güvenli şekilde güncelle
+      try {
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('Email verification successful, data saved to localStorage');
+      } catch (storageError) {
+        console.error('LocalStorage error:', storageError);
+        alert('Veri kaydedilemedi! Tarayıcı ayarlarını kontrol edin.');
+        return;
+      }
+      
       setToken(newToken);
       setUser(userData);
       setAuthMode('login');
