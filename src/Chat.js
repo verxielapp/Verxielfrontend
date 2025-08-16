@@ -20,13 +20,13 @@ export default function Chat({ token, user, contact, addContact }) {
   const [inCall, setInCall] = useState(false);
   const [remoteStream, setRemoteStream] = useState(null);
   const [localStream, setLocalStream] = useState(null);
-  const [isCallActive, setIsCallActive] = useState(false);
+  // const [isCallActive, setIsCallActive] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const [callEncrypted, setCallEncrypted] = useState(false);
   
   // Encryption state'leri
   const [sessionKey, setSessionKey] = useState(null);
-  const [encryptionKeys, setEncryptionKeys] = useState({});
+  // const [encryptionKeys, setEncryptionKeys] = useState({});
   const [keyExchangeComplete, setKeyExchangeComplete] = useState(false);
   
   const socketRef = useRef();
@@ -84,14 +84,14 @@ export default function Chat({ token, user, contact, addContact }) {
       
       // 4. Local state'i güncelle
       setSessionKey(sessionKey);
-      setEncryptionKeys(prev => ({
-        ...prev,
-        [contactId]: {
-          privateKey,
-          publicKey,
-          sessionKey
-        }
-      }));
+      // setEncryptionKeys(prev => ({
+      //   ...prev,
+      //   [contactId]: {
+      //     privateKey,
+      //     publicKey,
+      //     sessionKey
+      //   }
+      // }));
       
       console.log('Key exchange initiated');
       
@@ -214,14 +214,14 @@ export default function Chat({ token, user, contact, addContact }) {
         const { from, publicKey, sessionKey } = data;
         
         // Karşı tarafın public key'ini kaydet
-        setEncryptionKeys(prev => ({
-          ...prev,
-          [from]: {
-            ...prev[from],
-            remotePublicKey: publicKey,
-            sessionKey: sessionKey
-          }
-        }));
+        // setEncryptionKeys(prev => ({
+        //   ...prev,
+        //   [from]: {
+        //     ...prev[from],
+        //     remotePublicKey: publicKey,
+        //     sessionKey: sessionKey
+        //   }
+        // }));
         
         setKeyExchangeComplete(true);
         console.log('Key exchange completed successfully');
@@ -268,7 +268,7 @@ export default function Chat({ token, user, contact, addContact }) {
     socketRef.current.on('call_reject', (data) => {
       console.log('Call rejected:', data);
       setInCall(false);
-      setIsCallActive(false);
+      // setIsCallActive(false);
       setCallType(null);
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
@@ -284,7 +284,7 @@ export default function Chat({ token, user, contact, addContact }) {
     socketRef.current.on('call_end', (data) => {
       console.log('Call ended by remote:', data);
       setInCall(false);
-      setIsCallActive(false);
+      // setIsCallActive(false);
       setCallType(null);
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
@@ -403,134 +403,135 @@ export default function Chat({ token, user, contact, addContact }) {
     }
   };
 
-  // VOIP Fonksiyonları
-  const startCall = async (type) => {
-    try {
-      console.log('Starting call:', type);
-      setCallType(type);
-      
-      // Yerel stream'i al
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: type === 'audio' || type === 'video',
-        video: type === 'video'
-      });
-      
-      setLocalStream(stream);
-      
-      // WebRTC peer connection oluştur
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      });
-      
-      pcRef.current = pc;
-      
-      // Yerel stream'i peer connection'a ekle
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-      
-      // ICE candidate'ları gönder
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          socketRef.current.emit('ice_candidate', {
-            to: contact.id || contact._id,
-            candidate: event.candidate
-          });
-        }
-      };
-      
-      // Uzak stream'i al
-      pc.ontrack = (event) => {
-        setRemoteStream(event.streams[0]);
-      };
-      
-      // Offer oluştur ve gönder
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      
-      socketRef.current.emit('call_offer', {
-        to: contact.id || contact._id,
-        type: type,
-        offer: offer
-      });
-      
-      setInCall(true);
-      setIsCallActive(true);
-      startCallTimer();
-      
-    } catch (error) {
-      console.error('Call start error:', error);
-      alert('Arama başlatılamadı: ' + error.message);
-    }
-  };
+  // VOIP Fonksiyonları (Legacy - replaced by secure VOIP)
+  // const startCall = async (type) => {
+  //   try {
+  //     console.log('Starting call:', type);
+  //     setCallType(type);
+  //     
+  //     // Yerel stream'i al
+  //     const stream = await navigator.mediaDevices.getUserMedia({
+  //       audio: type === 'audio' || type === 'video',
+  //       video: type === 'video'
+  //     });
+  //     
+  //     setLocalStream(stream);
+  //     
+  //     // WebRTC peer connection oluştur
+  //     const pc = new RTCPeerConnection({
+  //       iceServers: [
+  //         { urls: 'stun:stun.l.google.com:19302' },
+  //         { urls: 'stun:stun1.l.google.com:19302' }
+  //       ]
+  //     });
+  //     
+  //     pcRef.current = pc;
+  //     
+  //     // Yerel stream'i peer connection'a ekle
+  //     stream.getTracks().forEach(track => {
+  //       pc.addTrack(track, stream);
+  //     });
+  //     
+  //     // ICE candidate'ları gönder
+  //     pc.onicecandidate = (event) => {
+  //       if (event.candidate) {
+  //         socketRef.current.emit('ice_candidate', {
+  //           to: contact.id || contact._id,
+  //           candidate: event.candidate
+  //         });
+  //       }
+  //     };
+  //     
+  //     // Uzak stream'i al
+  //     pc.ontrack = (event) => {
+  //       setRemoteStream(event.streams[0]);
+  //     };
+  //     
+  //     // Offer oluştur ve gönder
+  //     const offer = await pc.createOffer();
+  //     await pc.setLocalDescription(offer);
+  //     
+  //     socketRef.current.emit('call_offer', {
+  //       to: contact.id || contact._id,
+  //       type: type,
+  //       offer: offer
+  //     });
+  //     
+  //     setInCall(true);
+  //     setIsCallActive(true);
+  //     startCallTimer();
+  //     
+  //   } catch (error) {
+  //     console.error('Call start error:', error);
+  //     alert('Arama başlatılamadı: ' + error.message);
+  //   }
+  // };
   
-  const acceptCall = async () => {
-    try {
-      console.log('Accepting call');
-      const { from, type, offer } = callIncoming;
-      
-      // Yerel stream'i al
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: type === 'audio' || type === 'video',
-        video: type === 'video'
-      });
-      
-      setLocalStream(stream);
-      
-      // WebRTC peer connection oluştur
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      });
-      
-      pcRef.current = pc;
-      
-      // Yerel stream'i peer connection'a ekle
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
-      
-      // ICE candidate'ları gönder
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          socketRef.current.emit('ice_candidate', {
-            to: from,
-            candidate: event.candidate
-          });
-        }
-      };
-      
-      // Uzak stream'i al
-      pc.ontrack = (event) => {
-        setRemoteStream(event.streams[0]);
-      };
-      
-      // Offer'ı set et ve answer oluştur
-      await pc.setRemoteDescription(offer);
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      
-      socketRef.current.emit('call_answer', {
-        to: from,
-        answer: answer
-      });
-      
-      setInCall(true);
-      setIsCallActive(true);
-      setCallIncoming(null);
-      setCallModal(false);
-      startCallTimer();
-      
-    } catch (error) {
-      console.error('Call accept error:', error);
-      alert('Arama kabul edilemedi: ' + error.message);
-    }
-  };
+  // Legacy acceptCall function (replaced by secure VOIP)
+  // const acceptCall = async () => {
+  //   try {
+  //     console.log('Accepting call');
+  //     const { from, type, offer } = callIncoming;
+  //     
+  //     // Yerel stream'i al
+  //     const stream = await navigator.mediaDevices.getUserMedia({
+  //       audio: type === 'audio' || type === 'video',
+  //       video: type === 'video'
+  //     });
+  //     
+  //     setLocalStream(stream);
+  //     
+  //     // WebRTC peer connection oluştur
+  //     const pc = new RTCPeerConnection({
+  //       iceServers: [
+  //         { urls: 'stun:stun.l.google.com:19302' },
+  //         { urls: 'stun:stun1.l.google.com:19302' }
+  //       ]
+  //     });
+  //     
+  //     pcRef.current = pc;
+  //     
+  //     // Yerel stream'i peer connection'a ekle
+  //     stream.getTracks().forEach(track => {
+  //       pc.addTrack(track, stream);
+  //     });
+  //     
+  //     // ICE candidate'ları gönder
+  //     pc.onicecandidate = (event) => {
+  //       if (event.candidate) {
+  //         socketRef.current.emit('ice_candidate', {
+  //           to: from,
+  //           candidate: event.candidate
+  //         });
+  //       }
+  //     };
+  //     
+  //     // Uzak stream'i al
+  //     pc.ontrack = (event) => {
+  //       setRemoteStream(event.streams[0]);
+  //     };
+  //     
+  //     // Offer'ı set et ve answer oluştur
+  //     const offer = await pc.setRemoteDescription(offer);
+  //     const answer = await pc.createAnswer();
+  //     await pc.setLocalDescription(answer);
+  //     
+  //     socketRef.current.emit('call_answer', {
+  //       to: from,
+  //       answer: answer
+  //     });
+  //     
+  //     setInCall(true);
+  //     setIsCallActive(true);
+  //     setCallIncoming(null);
+  //     setCallModal(false);
+  //     startCallTimer();
+  //     
+  //   } catch (error) {
+  //     console.error('Call accept error:', error);
+  //     alert('Arama kabul edilemedi: ' + error.message);
+  //     }
+  //   };
   
   const rejectCall = () => {
     console.log('Rejecting call');
@@ -561,7 +562,7 @@ export default function Chat({ token, user, contact, addContact }) {
     
     // State'leri temizle
     setInCall(false);
-    setIsCallActive(false);
+    // setIsCallActive(false);
     setCallType(null);
     setRemoteStream(null);
     stopCallTimer();
@@ -730,7 +731,7 @@ export default function Chat({ token, user, contact, addContact }) {
       });
       
       setInCall(true);
-      setIsCallActive(true);
+      // setIsCallActive(true);
       setCallEncrypted(true);
       startCallTimer();
       
@@ -810,7 +811,7 @@ export default function Chat({ token, user, contact, addContact }) {
       });
       
       setInCall(true);
-      setIsCallActive(true);
+      // setIsCallActive(true);
       setCallIncoming(null);
       setCallModal(false);
       setCallEncrypted(true);
