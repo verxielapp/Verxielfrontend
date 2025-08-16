@@ -2622,6 +2622,10 @@ body {
   object-fit: cover;
 }
 
+.local-audio, .remote-audio {
+  display: none; /* Audio elementleri görünmez ama çalışır */
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -2671,32 +2675,18 @@ body {
   gap: 8px;
 }
 
-/* Güvenli VOIP Styles */
-.call-btn.secure {
-  position: relative;
-  overflow: hidden;
-}
-
-.call-btn.secure::before {
-  content: '🔒';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.call-btn.secure.audio-call {
+/* VOIP Styles */
+.call-btn.audio-call {
   background: linear-gradient(135deg, #28a745, #20c997);
   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
-.call-btn.secure.video-call {
+.call-btn.video-call {
   background: linear-gradient(135deg, #007bff, #6610f2);
   box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
 }
 
-.call-btn.secure:hover {
+.call-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
@@ -2711,14 +2701,14 @@ body {
   border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
-.accept-call-btn.secure {
+.accept-call-btn {
   background: linear-gradient(135deg, #28a745, #20c997);
   color: white;
   border: 2px solid #28a745;
   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
-.accept-call-btn.secure:hover {
+.accept-call-btn:hover {
   background: linear-gradient(135deg, #218838, #1ea085);
   transform: scale(1.05);
   box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
@@ -2728,23 +2718,18 @@ body {
 .security-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  justify-content: center;
+  padding: 4px 8px;
   background: rgba(40, 167, 69, 0.1);
   border: 1px solid rgba(40, 167, 69, 0.3);
-  border-radius: 8px;
-  margin: 8px 0;
+  border-radius: 20px;
+  margin: 4px 0;
+  width: fit-content;
 }
 
 .security-indicator .lock-icon {
-  font-size: 16px;
-  color: #28a745;
-}
-
-.security-indicator .security-text {
   font-size: 14px;
   color: #28a745;
-  font-weight: 500;
 }
 
 /* Key Exchange Progress */
@@ -2779,19 +2764,12 @@ body {
 }
 
 .security-badge {
-  display: block;
+  display: inline-block;
   background: #28a745;
   color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.security-desc {
-  display: block;
-  color: #666;
+  padding: 4px 12px;
+  border-radius: 16px;
   font-size: 12px;
-  line-height: 1.4;
+  font-weight: 500;
+  margin: 0;
 }

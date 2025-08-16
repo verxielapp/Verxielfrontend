@@ -703,13 +703,17 @@ export default function Chat({ token, user, contact, addContact }) {
       
       // 5. ICE candidate'ları şifrele ve gönder
       pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          const encryptedCandidate = encryptData(event.candidate, sessionKey);
-          socketRef.current.emit('secure_ice_candidate', {
-            to: contactId,
-            candidate: encryptedCandidate,
-            sessionId: sessionKey.toString()
-          });
+        if (event.candidate && sessionKey) {
+          try {
+            const encryptedCandidate = encryptData(event.candidate, sessionKey);
+            socketRef.current.emit('secure_ice_candidate', {
+              to: contactId,
+              candidate: encryptedCandidate,
+              sessionId: sessionKey.toString()
+            });
+          } catch (error) {
+            console.error('ICE candidate encryption failed:', error);
+          }
         }
       };
       
@@ -844,22 +848,22 @@ export default function Chat({ token, user, contact, addContact }) {
           </div>
         </div>
         
-        {/* Güvenli VOIP Arama Butonları */}
+        {/* VOIP Arama Butonları */}
         {!inCall && (
           <div className="call-actions">
             <button 
-              className="call-btn audio-call secure"
+              className="call-btn audio-call"
               onClick={() => startSecureCall('audio')}
-              title="Güvenli Sesli Arama (End-to-End Encrypted)"
+              title="Sesli Arama"
             >
-              🔒📞
+              📞
             </button>
             <button 
-              className="call-btn video-call secure"
+              className="call-btn video-call"
               onClick={() => startSecureCall('video')}
-              title="Güvenli Görüntülü Arama (End-to-End Encrypted)"
+              title="Görüntülü Arama"
             >
-              🔒📹
+              📹
             </button>
           </div>
         )}
@@ -957,6 +961,25 @@ export default function Chat({ token, user, contact, addContact }) {
                   autoPlay
                   playsInline
                   className="remote-video"
+                />
+              )}
+            </>
+          )}
+          {callType === 'audio' && (
+            <>
+              <audio
+                ref={localVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="local-audio"
+              />
+              {remoteStream && (
+                <audio
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="remote-audio"
                 />
               )}
             </>
