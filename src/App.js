@@ -206,16 +206,34 @@ function App() {
     checkTokenValidity();
   }, []);
 
+  // Debug function to check authentication status
+  const debugAuth = () => {
+    console.log('=== AUTH DEBUG ===');
+    console.log('Current token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+    console.log('Current user:', user);
+    console.log('LocalStorage token:', localStorage.getItem('token') ? localStorage.getItem('token').substring(0, 20) + '...' : 'NO TOKEN');
+    console.log('LocalStorage user:', localStorage.getItem('user'));
+    console.log('Contacts count:', contacts.length);
+    console.log('Selected contact:', selectedContact);
+    console.log('==================');
+  };
+
   // Kişi listesini yükle
   const loadContacts = useCallback(async () => {
     if (!token) {
       console.log('Token yok, contacts yüklenmiyor');
+      debugAuth(); // Debug authentication status
       return;
     }
     
     console.log('Loading contacts with token:', token.substring(0, 20) + '...');
+    console.log('Full token length:', token.length);
+    console.log('Token format check:', token.startsWith('eyJ') ? 'Valid JWT format' : 'Invalid JWT format');
     
     try {
+      console.log('Making request to:', 'https://verxiel.onrender.com/api/auth/contacts');
+      console.log('Request headers:', { Authorization: `Bearer ${token.substring(0, 20)}...` });
+      
       const res = await axios.get('https://verxiel.onrender.com/api/auth/contacts', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -266,6 +284,9 @@ function App() {
     } catch (err) {
       console.error('Load contacts error:', err);
       console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error message:', err.response?.data?.message);
+      console.error('Error config:', err.config);
       
       // Token hatası varsa kullanıcıyı logout yap
       if (err.response?.status === 401) {
@@ -1072,6 +1093,22 @@ function App() {
                     <span className="app-settings-slider"></span>
                   </label>
         </div>
+              </div>
+              
+              <div className="app-settings-section">
+                <h3>Geliştirici</h3>
+                <div className="app-settings-item">
+                  <span>Debug Bilgileri</span>
+                  <button 
+                    onClick={() => {
+                      debugAuth();
+                      alert('Debug bilgileri konsola yazdırıldı. F12 tuşuna basarak konsolu açın.');
+                    }} 
+                    className="debug-btn"
+                  >
+                    Debug
+                  </button>
+                </div>
               </div>
               </div>
               
