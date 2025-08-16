@@ -70,7 +70,7 @@ export default function Chat({ token, user, contact, addContact }) {
       console.log('Starting secure key exchange...');
       
       // 1. Key pair oluştur
-      const { privateKey, publicKey } = generateKeyPair();
+      const { publicKey } = generateKeyPair();
       
       // 2. Session key oluştur
       const sessionKey = generateSessionKey();
@@ -211,7 +211,7 @@ export default function Chat({ token, user, contact, addContact }) {
     socketRef.current.on('key_exchange_response', (data) => {
       console.log('Key exchange response received:', data);
       try {
-        const { from, publicKey, sessionKey } = data;
+        // const { from, publicKey, sessionKey } = data;
         
         // Karşı tarafın public key'ini kaydet
         // setEncryptionKeys(prev => ({
