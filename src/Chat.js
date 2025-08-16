@@ -794,7 +794,7 @@ export default function Chat({ token, user, contact, addContact }) {
       // 6. Uzak stream'i al
       pc.ontrack = (event) => {
         setRemoteStream(event.streams[0]);
-      });
+      };
       
       // 7. Offer'ı set et ve answer oluştur
       await pc.setRemoteDescription(decryptedOffer);
