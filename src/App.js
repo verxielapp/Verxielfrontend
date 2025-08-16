@@ -168,8 +168,21 @@ function App() {
           
           if (isValid === true) {
             console.log('Token is valid, setting user data');
-            setToken(savedToken);
-            setUser(JSON.parse(savedUser));
+            const parsedUser = JSON.parse(savedUser);
+            console.log('Parsed user data from localStorage:', parsedUser);
+            
+            // User verilerini doğrula
+            if (parsedUser && parsedUser.id && parsedUser.email) {
+              setToken(savedToken);
+              setUser(parsedUser);
+              console.log('User data set successfully');
+            } else {
+              console.error('Invalid user data structure:', parsedUser);
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setToken('');
+              setUser(null);
+            }
           } else {
             console.log('Token is invalid, clearing data');
             localStorage.removeItem('token');
@@ -283,6 +296,13 @@ function App() {
       loadContacts();
     }
   }, [token, loadContacts]);
+
+  // User verilerini debug et
+  useEffect(() => {
+    console.log('User state changed:', user);
+    console.log('User displayName:', user?.displayName);
+    console.log('User email:', user?.email);
+  }, [user]);
 
   // Kişi ekle
   const addContact = async (email) => {
@@ -446,6 +466,7 @@ function App() {
           return;
         }
         
+        console.log('Login response user data:', userData);
         setToken(newToken);
         setUser(userData);
       } else if (authMode === 'register') {
@@ -493,9 +514,10 @@ function App() {
         return;
       }
       
-      setToken(newToken);
-      setUser(userData);
-      setAuthMode('login');
+              console.log('Email verification response user data:', userData);
+        setToken(newToken);
+        setUser(userData);
+        setAuthMode('login');
     } catch (err) {
       console.error('Email verification error:', err);
       alert(err.response?.data?.message || 'Doğrulama başarısız!');
@@ -1003,18 +1025,18 @@ function App() {
               </button>
                 </div>
             
-            <div className="app-settings-sections">
-              <div className="app-settings-section">
-                <h3>Profil Bilgileri</h3>
-                <div className="app-settings-item">
-                  <span>Ad Soyad</span>
-                  <span className="app-settings-value">{user.displayName}</span>
-              </div>
-                <div className="app-settings-item">
-                  <span>E-posta</span>
-                  <span className="app-settings-value">{user.email}</span>
-          </div>
-          </div>
+                          <div className="app-settings-sections">
+                <div className="app-settings-section">
+                  <h3>Profil Bilgileri</h3>
+                  <div className="app-settings-item">
+                    <span>Ad Soyad</span>
+                    <span className="app-settings-value">{user.displayName || 'İsim Yok'}</span>
+                  </div>
+                  <div className="app-settings-item">
+                    <span>E-posta</span>
+                    <span className="app-settings-value">{user.email || 'Email Yok'}</span>
+                  </div>
+                </div>
               
               <div className="app-settings-section">
                 <h3>Bildirimler</h3>
@@ -1069,6 +1091,9 @@ function App() {
 
 // Profile Component
 function Profile({ user, contacts, token, onBack }) {
+  console.log('Profile component user data:', user);
+  console.log('Profile component user.displayName:', user?.displayName);
+  
   return (
     <div className="profile-sidebar">
       <div className="profile-header">
@@ -1086,8 +1111,8 @@ function Profile({ user, contacts, token, onBack }) {
           </div>
           )}
         </div>
-        <h4>{user.displayName}</h4>
-        <p>{user.email}</p>
+        <h4>{user.displayName || 'İsim Yok'}</h4>
+        <p>{user.email || 'Email Yok'}</p>
         </div>
 
       <div className="profile-stats">
