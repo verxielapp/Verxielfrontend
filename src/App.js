@@ -3,6 +3,8 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import Chat from './Chat';
 import FriendRequests from './FriendRequests';
+import LanguageSelector from './components/LanguageSelector';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import './App.css';
 
 // Icon imports
@@ -31,6 +33,7 @@ const Icons = {
 const SOCKET_URL = 'https://verxiel.onrender.com';
 
 function App() {
+  const { t } = useLanguage();
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
   const [contacts, setContacts] = useState([]);
@@ -1069,7 +1072,7 @@ function App() {
                   </label>
           </div>
                 <div className="app-settings-item">
-                  <span>Ses Bildirimleri</span>
+                  <span>{t.notifications}</span>
                   <label className="app-settings-toggle">
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
@@ -1078,21 +1081,29 @@ function App() {
       </div>
               
               <div className="app-settings-section">
-                <h3>Gizlilik</h3>
+                <h3>{t.privacy}</h3>
                 <div className="app-settings-item">
-                  <span>Çevrimiçi Durumu</span>
+                  <span>{t.online}</span>
                   <label className="app-settings-toggle">
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
                   </label>
           </div>
                 <div className="app-settings-item">
-                  <span>Son Görülme</span>
+                  <span>{t.lastSeen}</span>
                   <label className="app-settings-toggle">
                     <input type="checkbox" defaultChecked />
                     <span className="app-settings-slider"></span>
                   </label>
         </div>
+              </div>
+              
+              <div className="app-settings-section">
+                <h3>{t.language}</h3>
+                <div className="app-settings-item">
+                  <span>{t.language}</span>
+                  <LanguageSelector />
+                </div>
               </div>
               
               <div className="app-settings-section">
@@ -1114,7 +1125,7 @@ function App() {
               
             <div className="app-settings-footer">
               <button onClick={handleLogout} className="app-settings-btn app-settings-btn-danger">
-                Çıkış Yap
+                {t.logout}
                 </button>
           </div>
         </div>
@@ -1128,13 +1139,14 @@ function App() {
 
 // Profile Component
 function Profile({ user, contacts, token, onBack }) {
+  const { t } = useLanguage();
   console.log('Profile component user data:', user);
   console.log('Profile component user.displayName:', user?.displayName);
   
   return (
     <div className="profile-sidebar">
       <div className="profile-header">
-        <h3>Profil</h3>
+        <h3>{t.profile}</h3>
         <button onClick={onBack} className="back-btn">{Icons.back}</button>
       </div>
       
@@ -1148,13 +1160,13 @@ function Profile({ user, contacts, token, onBack }) {
           </div>
           )}
         </div>
-        <h4>{user.displayName || 'İsim Yok'}</h4>
-        <p>{user.email || 'Email Yok'}</p>
+        <h4>{user.displayName || t.name}</h4>
+        <p>{user.email || t.email}</p>
         </div>
 
       <div className="profile-stats">
         <div className="stat-item">
-          <span className="stat-label">Toplam Kişi</span>
+          <span className="stat-label">{t.contacts}</span>
           <span className="stat-value">{Array.isArray(contacts) ? contacts.length : 0}</span>
           </div>
       </div>
@@ -1162,4 +1174,13 @@ function Profile({ user, contacts, token, onBack }) {
   );
 }
 
-export default App;
+// Ana App bileşenini LanguageProvider ile sar
+const AppWithLanguage = () => {
+  return (
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
+  );
+};
+
+export default AppWithLanguage;

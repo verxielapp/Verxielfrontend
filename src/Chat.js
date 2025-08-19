@@ -2,10 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
+import { useLanguage } from './contexts/LanguageContext';
 
 const SOCKET_URL = 'https://verxiel.onrender.com';
 
 export default function Chat({ token, user, contact, addContact }) {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isConnected, setIsConnected] = useState(true);
@@ -455,7 +457,7 @@ export default function Chat({ token, user, contact, addContact }) {
   //       to: contact.id || contact._id,
   //       type: type,
   //       offer: offer
-  //     });
+  //       });
   //     
   //     setInCall(true);
   //     setIsCallActive(true);
@@ -530,8 +532,8 @@ export default function Chat({ token, user, contact, addContact }) {
   //   } catch (error) {
   //     console.error('Call accept error:', error);
   //     alert('Arama kabul edilemedi: ' + error.message);
-  //     }
-  //   };
+  //   }
+  // };
   
   const rejectCall = () => {
     console.log('Rejecting call');
@@ -786,13 +788,17 @@ export default function Chat({ token, user, contact, addContact }) {
       
       // 5. ICE candidate'ları şifrele ve gönder
       pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          const encryptedCandidate = encryptData(event.candidate, sessionId);
-          socketRef.current.emit('secure_ice_candidate', {
-            to: from,
-            candidate: encryptedCandidate,
-            sessionId: sessionId
-          });
+        if (event.candidate && sessionId) {
+          try {
+            const encryptedCandidate = encryptData(event.candidate, sessionId);
+            socketRef.current.emit('secure_ice_candidate', {
+              to: from,
+              candidate: encryptedCandidate,
+              sessionId: sessionId
+            });
+          } catch (error) {
+            console.error('ICE candidate encryption failed:', error);
+          }
         }
       };
       
@@ -873,12 +879,12 @@ export default function Chat({ token, user, contact, addContact }) {
           <div className="call-controls">
             <div className="call-info">
               <span className="call-type">
-                {callType === 'audio' ? '🔒📞' : '🔒📹'} 
-                {callType === 'audio' ? 'Güvenli Sesli Arama' : 'Güvenli Görüntülü Arama'}
+                {callType === 'audio' ? '📞' : '📹'} 
+                {callType === 'audio' ? 'Sesli Arama' : 'Görüntülü Arama'}
               </span>
               <span className="call-duration">{formatCallDuration(callDuration)}</span>
               {callEncrypted && (
-                <span className="encryption-status">🔒 Şifrelenmiş</span>
+                <span className="encryption-status">🔒</span>
               )}
             </div>
             <button 
@@ -897,25 +903,24 @@ export default function Chat({ token, user, contact, addContact }) {
         <div className="incoming-call-modal">
           <div className="call-modal-content">
             <div className="call-modal-header">
-              <h3>🔒 Güvenli Gelen Arama</h3>
+              <h3>Gelen Arama</h3>
               <span className="caller-name">
                 {callIncoming.from?.displayName || callIncoming.from?.username || callIncoming.from?.email}
               </span>
               <span className="call-type">
-                {callIncoming.type === 'audio' ? '🔒📞 Güvenli Sesli Arama' : '🔒📹 Güvenli Görüntülü Arama'}
+                {callIncoming.type === 'audio' ? '📞 Sesli Arama' : '📹 Görüntülü Arama'}
               </span>
               <div className="security-info">
-                <span className="security-badge">🔒 End-to-End Encryption</span>
-                <span className="security-desc">Bu arama tamamen şifrelenmiş ve güvenli</span>
+                <span className="security-badge">🔒 Güvenli</span>
               </div>
             </div>
             
             <div className="call-modal-actions">
               <button 
-                className="accept-call-btn secure"
+                className="accept-call-btn"
                 onClick={acceptSecureCall}
               >
-                🔒✅ Güvenli Kabul Et
+                ✅ Kabul Et
               </button>
               <button 
                 className="reject-call-btn"
@@ -932,14 +937,13 @@ export default function Chat({ token, user, contact, addContact }) {
       {!keyExchangeComplete && inCall && (
         <div className="key-exchange-progress">
           <div className="spinner"></div>
-          <span>Güvenli bağlantı kuruluyor...</span>
+          <span>Bağlantı kuruluyor...</span>
         </div>
       )}
       
       {callEncrypted && (
         <div className="security-indicator">
           <span className="lock-icon">🔒</span>
-          <span className="security-text">End-to-End Encryption Aktif</span>
         </div>
       )}
       
@@ -1184,7 +1188,7 @@ export default function Chat({ token, user, contact, addContact }) {
             fontSize: '14px',
             minHeight: '40px'
           }}
-          placeholder="Mesaj yaz veya resim ekle..."
+                        placeholder={t.typeMessage}
         />
         
         <button 

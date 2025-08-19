@@ -1,0 +1,147 @@
+.language-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.language-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  justify-content: space-between;
+}
+
+.language-button:hover {
+  background: var(--primary-hover, #0056b3);
+  transform: translateY(-1px);
+}
+
+.language-button:active {
+  transform: translateY(0);
+}
+
+.language-flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.language-name {
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.language-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 4px;
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.language-option:hover {
+  background-color: #f8f9fa;
+}
+
+.language-option.active {
+  background-color: #e3f2fd;
+  color: var(--primary-color, #007bff);
+}
+
+.language-option .language-flag {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.language-option .language-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.checkmark {
+  color: var(--primary-color, #007bff);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .language-dropdown {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .language-option:hover {
+    background-color: #4a5568;
+  }
+  
+  .language-option.active {
+    background-color: #2b6cb0;
+    color: white;
+  }
+  
+  .checkmark {
+    color: white;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .language-button {
+    min-width: 100px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .language-name {
+    display: none;
+  }
+  
+  .language-dropdown {
+    min-width: 120px;
+  }
+  
+  .language-option .language-name {
+    display: block;
+  }
+}

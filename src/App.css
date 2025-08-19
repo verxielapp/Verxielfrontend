@@ -916,7 +916,7 @@ body {
 .modal-description p {
   color: #666;
   font-size: 14px;
-  margin: 0;
+    margin: 0;
 }
 
 .modal-footer {
@@ -1967,7 +1967,7 @@ body {
   }
 
   .image-preview-content {
-    background: #fff;
+  background: #fff;
     padding: 6px;
     border-radius: 6px;
     border: 1px solid #ddd;
@@ -2105,7 +2105,7 @@ body {
   .chat-contact-avatar-placeholder {
     width: 24px;
     height: 24px;
-    border-radius: 12px;
+  border-radius: 12px;
     min-width: 24px;
     min-height: 24px;
   }
@@ -2147,9 +2147,9 @@ body {
     font-size: 12px;
     min-width: 28px;
     min-height: 28px;
-  }
+}
 
-  .message-bubble {
+.message-bubble {
     margin: 2px 4px !important;
     max-width: 95% !important;
   }
