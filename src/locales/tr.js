@@ -1,4 +1,4 @@
-export default {
+const tr = {
   // Genel
   appName: "Verxiel",
   loading: "Yükleniyor...",
@@ -150,3 +150,5 @@ export default {
   undo: "Geri Al",
   redo: "Yinele"
 };
+
+export default tr;
