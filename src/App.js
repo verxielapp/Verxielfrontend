@@ -525,26 +525,30 @@ function App() {
 
     try {
       const res = await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { email, code });
-      const { token: newToken, user: userData } = res.data;
       
-      // LocalStorage'ı güvenli şekilde güncelle
-      try {
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-        console.log('Email verification successful, data saved to localStorage');
-      } catch (storageError) {
-        console.error('LocalStorage error:', storageError);
-        alert('Veri kaydedilemedi! Tarayıcı ayarlarını kontrol edin.');
-        return;
-      }
-      
-              console.log('Email verification response user data:', userData);
-        setToken(newToken);
-        setUser(userData);
+      if (res.data.verified) {
+        alert('Email başarıyla doğrulandı! Şimdi giriş yapabilirsiniz.');
+        setVerificationEmail(null);
         setAuthMode('login');
+      } else {
+        alert('Doğrulama başarısız!');
+      }
     } catch (err) {
       console.error('Email verification error:', err);
-      alert(err.response?.data?.message || 'Doğrulama başarısız!');
+      const errorMessage = err.response?.data?.message || 'Doğrulama başarısız!';
+      
+      if (err.response?.data?.codeExpired) {
+        alert('Doğrulama kodunun süresi dolmuş! Yeni kod talep edin.');
+        // Yeni kod gönder
+        try {
+          await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
+          alert('Yeni kod gönderildi! Email adresinizi kontrol edin.');
+        } catch (resendErr) {
+          alert('Yeni kod gönderilemedi!');
+        }
+      } else {
+        alert(errorMessage);
+      }
     }
   };
 
@@ -655,10 +659,34 @@ function App() {
                 <input
                   type="password"
                   name="password"
-                  placeholder="Şifre"
+                  placeholder="Şifre (en az 8 karakter, büyük/küçük harf, rakam, özel karakter)"
                   required
                   className="auth-input"
+                  onChange={(e) => {
+                    const password = e.target.value;
+                    const hasUpperCase = /[A-Z]/.test(password);
+                    const hasLowerCase = /[a-z]/.test(password);
+                    const hasNumbers = /\d/.test(password);
+                    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                    const isLongEnough = password.length >= 8;
+                    
+                    // Şifre güçlülük göstergesi
+                    const strength = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar, isLongEnough].filter(Boolean).length;
+                    const strengthText = ['Çok Zayıf', 'Zayıf', 'Orta', 'Güçlü', 'Çok Güçlü'][strength - 1] || '';
+                    const strengthColor = ['#ff4444', '#ff8800', '#ffaa00', '#00aa00', '#008800'][strength - 1] || '#ccc';
+                    
+                    if (password.length > 0) {
+                      e.target.style.borderColor = strengthColor;
+                      e.target.title = `Şifre Gücü: ${strengthText}`;
+                    } else {
+                      e.target.style.borderColor = '';
+                      e.target.title = '';
+                    }
+                  }}
                 />
+                <div className="password-strength-info">
+                  <small>Şifre en az 8 karakter olmalı ve büyük/küçük harf, rakam ve özel karakter içermelidir.</small>
+                </div>
                 <button type="submit" className="auth-button">
                   Giriş Yap
                     </button>
@@ -694,10 +722,13 @@ function App() {
                 <input
                   type="text"
                   name="username"
-                  placeholder="Kullanıcı Adı"
+                  placeholder="Kullanıcı Adı (en az 4 karakter, sadece harf, rakam ve alt çizgi)"
                   required
                   className="auth-input"
                 />
+                <div className="username-info">
+                  <small>Kullanıcı adı en az 4 karakter olmalı ve sadece harf, rakam ve alt çizgi içerebilir.</small>
+                </div>
               <input
                 type="email"
                   name="email"

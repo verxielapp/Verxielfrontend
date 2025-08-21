@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import tr from '../locales/tr';
 import en from '../locales/en';
 
@@ -27,7 +27,7 @@ export const LanguageProvider = ({ children }) => {
     return 'en';
   });
 
-  const [t] = useState(() => languages[currentLanguage].locale);
+  const t = useMemo(() => languages[currentLanguage].locale, [currentLanguage]);
 
   useEffect(() => {
     localStorage.setItem('language', currentLanguage);

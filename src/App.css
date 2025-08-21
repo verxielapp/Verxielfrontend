@@ -2791,3 +2791,48 @@ body {
   font-weight: 500;
   margin: 0;
 }
+
+/* Password strength indicator */
+.password-strength-info,
+.username-info {
+  margin-top: 5px;
+  margin-bottom: 15px;
+  text-align: left;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.password-strength-info small,
+.username-info small {
+  color: #888;
+  font-style: italic;
+}
+
+/* Auth input focus states */
+.auth-input:focus {
+  border-color: #a259e6;
+  box-shadow: 0 0 0 2px rgba(162, 89, 230, 0.2);
+  outline: none;
+}
+
+/* Password strength colors */
+.auth-input[style*="border-color: #ff4444"] {
+  border-color: #ff4444 !important;
+}
+
+.auth-input[style*="border-color: #ff8800"] {
+  border-color: #ff8800 !important;
+}
+
+.auth-input[style*="border-color: #ffaa00"] {
+  border-color: #ffaa00 !important;
+}
+
+.auth-input[style*="border-color: #00aa00"] {
+  border-color: #00aa00 !important;
+}
+
+.auth-input[style*="border-color: #008800"] {
+  border-color: #008800 !important;
+}
