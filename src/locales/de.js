@@ -1,4 +1,4 @@
-export default {
+const de = {
   // Allgemein
   appName: "Verxiel",
   loading: "Wird geladen...",
@@ -150,3 +150,5 @@ export default {
   undo: "Rückgängig",
   redo: "Wiederholen"
 };
+
+export default de;

@@ -157,13 +157,13 @@ function App() {
     // Token geçerliliğini kontrol et
   useEffect(() => {
     const checkTokenValidity = async () => {
-      const savedToken = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
       
       console.log('Debug - Saved token:', savedToken ? savedToken.substring(0, 20) + '...' : 'NO TOKEN');
       console.log('Debug - Saved user:', savedUser);
       
-      if (savedToken && savedUser) {
+    if (savedToken && savedUser) {
         console.log('Checking token validity...');
         try {
           const isValid = await verifyToken(savedToken);
@@ -176,7 +176,7 @@ function App() {
             
             // User verilerini doğrula
             if (parsedUser && parsedUser.id && parsedUser.email) {
-              setToken(savedToken);
+      setToken(savedToken);
               setUser(parsedUser);
               console.log('User data set successfully');
             } else {
@@ -186,10 +186,10 @@ function App() {
               setToken('');
               setUser(null);
             }
-          } else {
+    } else {
             console.log('Token is invalid, clearing data');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
             setToken('');
             setUser(null);
           }
@@ -728,7 +728,7 @@ function App() {
                 />
                 <div className="username-info">
                   <small>Kullanıcı adı en az 4 karakter olmalı ve sadece harf, rakam ve alt çizgi içerebilir.</small>
-                </div>
+            </div>
               <input
                 type="email"
                   name="email"
@@ -786,7 +786,7 @@ function App() {
               
               <button onClick={() => setAuthMode('login')} className="auth-button secondary">
                 Giriş Yap
-          </button>
+              </button>
             </>
           )}
         </div>
@@ -839,21 +839,21 @@ function App() {
             >
               <span><img src={Icons.chat} alt="Chat" className="nav-icon" /></span>
               <span>Sohbet</span>
-            </div>
+          </div>
             <div 
               className={`desktop-nav-tab ${currentView === 'contacts' ? 'active' : ''}`}
               onClick={() => handleMobileNav('contacts')}
             >
               <span><img src={Icons.contacts} alt="Contacts" className="nav-icon" /></span>
               <span>Kişiler</span>
-            </div>
+        </div>
             <div 
               className={`desktop-nav-tab ${currentView === 'friend-requests' ? 'active' : ''}`}
               onClick={() => handleMobileNav('friend-requests')}
             >
               <span>🤝</span>
               <span>İstekler</span>
-            </div>
+      </div>
             <div 
               className={`desktop-nav-tab ${currentView === 'profile' ? 'active' : ''}`}
               onClick={() => handleMobileNav('profile')}
@@ -889,7 +889,7 @@ function App() {
                     ) : (
                       <div className="contact-avatar-placeholder">
                         {contact.displayName ? contact.displayName.charAt(0).toUpperCase() : '?'}
-                      </div>
+          </div>
                     )}
                     <div className="contact-name">{contact.displayName || contact.email}</div>
                   </li>
@@ -910,7 +910,7 @@ function App() {
                                 <button onClick={() => setShowAddContact(true)} className="add-contact-btn mobile">
                   <img src={Icons.add} alt="Add Contact" className="add-icon" />
                 </button>
-                  </div>
+        </div>
               <ul className="contact-list">
                 {Array.isArray(contacts) && contacts.map(contact => (
                   <li key={contact.id || contact._id} className="contact-item">
@@ -998,8 +998,8 @@ function App() {
             <div className="modal-description">
               <p>E-posta adresi ile kişi ekleyin veya sohbet başlatın</p>
             </div>
-            <input
-              type="email"
+        <input
+          type="email"
               placeholder="E-posta adresi"
               value={addEmail}
               onChange={(e) => {
@@ -1037,7 +1037,7 @@ function App() {
                 disabled={!addEmail.trim()}
               >
                 Kişi Ekle
-              </button>
+        </button>
               <button 
                 onClick={() => {
                   if (addEmail.trim()) {
@@ -1050,7 +1050,7 @@ function App() {
                 disabled={!addEmail.trim()}
               >
                 Sohbet Başlat
-              </button>
+          </button>
             </div>
             
             <div className="modal-footer">
@@ -1063,7 +1063,7 @@ function App() {
                 className="modal-button cancel"
               >
                 İptal
-              </button>
+          </button>
             </div>
           </div>
         </div>
@@ -1149,7 +1149,7 @@ function App() {
                     className="debug-btn"
                   >
                     Debug
-                  </button>
+        </button>
                 </div>
               </div>
               </div>

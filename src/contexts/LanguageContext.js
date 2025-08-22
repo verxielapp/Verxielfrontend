@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import tr from '../locales/tr';
 import en from '../locales/en';
+import de from '../locales/de';
+import fr from '../locales/fr';
 
 const LanguageContext = createContext();
 
 const languages = {
   tr: { name: 'Türkçe', flag: '🇹🇷', locale: tr },
-  en: { name: 'English', flag: '🇺🇸', locale: en }
+  en: { name: 'English', flag: '🇺🇸', locale: en },
+  de: { name: 'Deutsch', flag: '🇩🇪', locale: de },
+  fr: { name: 'Français', flag: '🇫🇷', locale: fr }
 };
 
 export const LanguageProvider = ({ children }) => {

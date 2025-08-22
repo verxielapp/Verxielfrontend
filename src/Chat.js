@@ -161,8 +161,8 @@ export default function Chat({ token, user, contact, addContact }) {
     // Socket event listener'ları
     socketRef.current.on('message', msg => {
       console.log('Received message:', msg);
-      const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
-      const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+          const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
       const fromId = (msg.fromId || msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
       const toId = (msg.toId || msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
       
@@ -331,8 +331,8 @@ export default function Chat({ token, user, contact, addContact }) {
     setIsLoading(true);
     
     try {
-      const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
-      const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+    const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
       
       console.log('Sending message:', {
         from: myId,
@@ -366,7 +366,7 @@ export default function Chat({ token, user, contact, addContact }) {
         setMessages(prev => [...prev, tempMessage]);
       }
       
-      setInput('');
+    setInput('');
       setSelectedImage(null);
       setImagePreview(null);
     } catch (error) {
@@ -553,7 +553,7 @@ export default function Chat({ token, user, contact, addContact }) {
     // Stream'leri durdur
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
-      setLocalStream(null);
+    setLocalStream(null);
     }
     
     // Peer connection'ı kapat
@@ -847,7 +847,7 @@ export default function Chat({ token, user, contact, addContact }) {
                 {contact.displayName?.charAt(0) || contact.username?.charAt(0) || contact.email?.charAt(0)}
               </div>
             )}
-          </div>
+            </div>
           <div className="contact-details">
             <h3>{contact.displayName || contact.username || contact.email}</h3>
             <span className="status">{isConnected ? 'Çevrimiçi' : 'Çevrimdışı'}</span>
@@ -894,8 +894,8 @@ export default function Chat({ token, user, contact, addContact }) {
             >
               ❌
             </button>
-          </div>
-        )}
+        </div>
+      )}
       </div>
       
       {/* Gelen Arama Modalı */}
@@ -938,8 +938,8 @@ export default function Chat({ token, user, contact, addContact }) {
         <div className="key-exchange-progress">
           <div className="spinner"></div>
           <span>Bağlantı kuruluyor...</span>
-        </div>
-      )}
+            </div>
+          )}
       
       {callEncrypted && (
         <div className="security-indicator">

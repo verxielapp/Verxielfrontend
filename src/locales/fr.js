@@ -1,4 +1,4 @@
-export default {
+const fr = {
   // Général
   appName: "Verxiel",
   loading: "Chargement...",
@@ -150,3 +150,5 @@ export default {
   undo: "Annuler",
   redo: "Rétablir"
 };
+
+export default fr;
