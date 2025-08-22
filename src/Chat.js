@@ -1034,8 +1034,7 @@ export default function Chat({ token, user, contact, addContact }) {
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
-        callIncoming: !!callIncoming,
-        sessionId: !!sessionId
+        callIncoming: !!callIncoming
       });
       
       let errorMessage = 'Güvenli arama kabul edilemedi';
