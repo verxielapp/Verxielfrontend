@@ -41,149 +41,25 @@ export default function Chat({ token, user, contact, addContact }) {
   
   // Encryption utilities
   const generateKeyPair = () => {
-    try {
-      // Daha güvenilir key generation
-      const timestamp = Date.now().toString();
-      const randomBytes = CryptoJS.lib.WordArray.random(128);
-      
-      if (!randomBytes) {
-        throw new Error('Random bytes generation failed');
-      }
-      
-      const privateKey = CryptoJS.SHA256(timestamp + randomBytes.toString());
-      const publicKey = CryptoJS.SHA256(privateKey.toString() + timestamp);
-      
-      // Null check ekle
-      if (!privateKey || !publicKey) {
-        throw new Error('Key pair generation failed');
-      }
-      
-      console.log('Key pair generated successfully');
-      return { privateKey, publicKey };
-    } catch (error) {
-      console.error('Key pair generation error:', error);
-      // Fallback: timestamp-based key pair
-      const timestamp = Date.now().toString();
-      const fallbackKey = CryptoJS.SHA256(timestamp + 'fallback');
-      return { 
-        privateKey: fallbackKey, 
-        publicKey: CryptoJS.SHA256(fallbackKey.toString() + timestamp) 
-      };
-    }
+    // RSA benzeri key pair (gerçek uygulamada Web Crypto API kullanılır)
+    const privateKey = CryptoJS.lib.WordArray.random(256);
+    const publicKey = CryptoJS.SHA256(privateKey.toString());
+    return { privateKey, publicKey };
   };
   
   const generateSessionKey = () => {
-    try {
-      // Daha güvenilir session key generation
-      const timestamp = Date.now().toString();
-      const randomBytes = CryptoJS.lib.WordArray.random(128);
-      
-      if (!randomBytes) {
-        throw new Error('Random bytes generation failed');
-      }
-      
-      const sessionKey = CryptoJS.SHA256(timestamp + randomBytes.toString() + 'session');
-      
-      if (!sessionKey) {
-        throw new Error('Session key generation failed');
-      }
-      
-      console.log('Session key generated successfully');
-      return sessionKey;
-    } catch (error) {
-      console.error('Session key generation error:', error);
-      // Fallback: timestamp-based session key
-      const timestamp = Date.now().toString();
-      return CryptoJS.SHA256(timestamp + 'fallback-session');
-    }
-  };
-  
-  // Debug fonksiyonu
-  const debugEncryption = async () => {
-    try {
-      console.log('=== Encryption Debug ===');
-      
-      // Test key generation
-      const keyPair = generateKeyPair();
-      console.log('Key pair:', { 
-        privateKey: !!keyPair.privateKey, 
-        publicKey: !!keyPair.publicKey 
-      });
-      
-      // Test session key
-      const sessionKey = generateSessionKey();
-      console.log('Session key:', !!sessionKey);
-      
-      // Test encryption
-      const testData = { test: 'data' };
-      const encrypted = encryptData(testData, sessionKey);
-      console.log('Encryption test:', !!encrypted);
-      
-      // Test decryption
-      const decrypted = decryptData(encrypted, sessionKey);
-      console.log('Decryption test:', !!decrypted);
-      
-      console.log('=== Debug Complete ===');
-      
-      // Test secure call start
-      if (contact) {
-        console.log('Testing secure call start...');
-        try {
-          const contactId = contact.id || contact._id;
-          console.log('Contact ID for test:', contactId);
-          
-          // Test performKeyExchange
-          await performKeyExchange(contactId);
-          console.log('Key exchange test successful');
-          
-        } catch (error) {
-          console.error('Secure call test failed:', error);
-        }
-      }
-      
-    } catch (error) {
-      console.error('Debug failed:', error);
-    }
+    return CryptoJS.lib.WordArray.random(256);
   };
   
   const encryptData = (data, key) => {
-    try {
-      if (!data || !key) {
-        throw new Error('Data or key is null/undefined');
-      }
-      
-      const dataString = typeof data === 'string' ? data : JSON.stringify(data);
-      const keyString = key.toString();
-      
-      if (!keyString) {
-        throw new Error('Key conversion to string failed');
-      }
-      
-      return CryptoJS.AES.encrypt(dataString, keyString).toString();
-    } catch (error) {
-      console.error('Encryption failed:', error);
-      throw new Error('Veri şifrelenemedi: ' + error.message);
-    }
+    const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+    return CryptoJS.AES.encrypt(dataString, key.toString()).toString();
   };
   
   const decryptData = (encryptedData, key) => {
     try {
-      if (!encryptedData || !key) {
-        throw new Error('Encrypted data or key is null/undefined');
-      }
-      
-      const keyString = key.toString();
-      if (!keyString) {
-        throw new Error('Key conversion to string failed');
-      }
-      
-      const decrypted = CryptoJS.AES.decrypt(encryptedData, keyString);
+      const decrypted = CryptoJS.AES.decrypt(encryptedData, key.toString());
       const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
-      
-      if (!decryptedString) {
-        throw new Error('Decryption result is empty');
-      }
-      
       return JSON.parse(decryptedString);
     } catch (error) {
       console.error('Decryption failed:', error);
@@ -195,44 +71,35 @@ export default function Chat({ token, user, contact, addContact }) {
     try {
       console.log('Starting secure key exchange...');
       
-      if (!contactId) {
-        throw new Error('Contact ID is required');
-      }
-      
       // 1. Key pair oluştur
-      const keyPair = generateKeyPair();
-      if (!keyPair || !keyPair.publicKey) {
-        throw new Error('Key pair generation failed');
-      }
+      const { publicKey } = generateKeyPair();
       
       // 2. Session key oluştur
       const sessionKey = generateSessionKey();
-      if (!sessionKey) {
-        throw new Error('Session key generation failed');
-      }
       
       // 3. Public key'i karşı tarafa gönder
-      const publicKeyString = keyPair.publicKey.toString();
-      if (!publicKeyString) {
-        throw new Error('Public key conversion failed');
-      }
-      
-      const encryptedSessionKey = encryptData(sessionKey, publicKeyString);
-      
       socketRef.current.emit('key_exchange_init', {
         to: contactId,
-        publicKey: publicKeyString,
-        sessionKey: encryptedSessionKey
+        publicKey: publicKey.toString(),
+        sessionKey: encryptData(sessionKey, publicKey.toString())
       });
       
       // 4. Local state'i güncelle
       setSessionKey(sessionKey);
+      // setEncryptionKeys(prev => ({
+      //   ...prev,
+      //   [contactId]: {
+      //     privateKey,
+      //     publicKey,
+      //     sessionKey
+      //   }
+      // }));
       
-      console.log('Key exchange initiated successfully');
+      console.log('Key exchange initiated');
       
     } catch (error) {
       console.error('Key exchange failed:', error);
-      throw new Error('Güvenli bağlantı kurulamadı: ' + error.message);
+      throw new Error('Güvenli bağlantı kurulamadı');
     }
   };
 
@@ -459,7 +326,7 @@ export default function Chat({ token, user, contact, addContact }) {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if ((!input.trim() && !selectedImage) || !isConnected) return;
+    if ((!input.trim() && !selectedImage)) return;
     
     setIsLoading(true);
     
@@ -474,7 +341,44 @@ export default function Chat({ token, user, contact, addContact }) {
         hasImage: !!selectedImage
       });
       
-      // Socket ile mesaj gönder
+      // HTTP endpoint ile mesaj gönder
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${SOCKET_URL}/api/messages/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          to: contactId,
+          content: input.trim() || null,
+          image: selectedImage,
+          type: selectedImage ? 'image' : 'text'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Message sent via HTTP:', result);
+      
+      // Mesajı local olarak ekle
+      const newMessage = {
+        id: result.data.id,
+        content: input.trim() || null,
+        image: selectedImage,
+        fromId: myId,
+        toId: contactId,
+        from: { id: myId, displayName: 'Sen' },
+        timestamp: new Date().toISOString(),
+        type: selectedImage ? 'image' : 'text'
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      
+      // Socket ile de gönder (real-time için)
       if (socketRef.current && isConnected) {
         socketRef.current.emit('message', { 
           content: input.trim() || null, 
@@ -483,20 +387,6 @@ export default function Chat({ token, user, contact, addContact }) {
           image: selectedImage,
           type: selectedImage ? 'image' : 'text'
         });
-        
-        // Mesajı local olarak ekle (socket'ten gelene kadar)
-        const tempMessage = {
-          id: Date.now(),
-          content: input.trim() || null,
-          image: selectedImage,
-          fromId: myId,
-          toId: contactId,
-          from: { id: myId, displayName: 'Sen' },
-          timestamp: new Date().toISOString(),
-          type: selectedImage ? 'image' : 'text'
-        };
-        
-        setMessages(prev => [...prev, tempMessage]);
       }
       
     setInput('');
@@ -805,26 +695,10 @@ export default function Chat({ token, user, contact, addContact }) {
       console.log('Starting secure call:', type);
       setCallType(type);
       
-      if (!contact) {
-        throw new Error('Contact bilgisi bulunamadı');
-      }
-      
       const contactId = contact.id || contact._id;
-      if (!contactId) {
-        throw new Error('Contact ID bulunamadı');
-      }
-      
-      console.log('Contact ID for call:', contactId);
       
       // 1. Güvenli key exchange başlat
       await performKeyExchange(contactId);
-      
-      // Session key kontrolü
-      if (!sessionKey) {
-        throw new Error('Session key oluşturulamadı');
-      }
-      
-      console.log('Session key created:', !!sessionKey);
       
       // 2. Yerel stream'i al
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -856,17 +730,11 @@ export default function Chat({ token, user, contact, addContact }) {
       pc.onicecandidate = (event) => {
         if (event.candidate && sessionKey) {
           try {
-            const sessionKeyString = sessionKey.toString();
-            if (!sessionKeyString) {
-              console.warn('Session key is null, skipping ICE candidate');
-              return;
-            }
-            
             const encryptedCandidate = encryptData(event.candidate, sessionKey);
             socketRef.current.emit('secure_ice_candidate', {
               to: contactId,
               candidate: encryptedCandidate,
-              sessionId: sessionKeyString
+              sessionId: sessionKey.toString()
             });
           } catch (error) {
             console.error('ICE candidate encryption failed:', error);
@@ -883,17 +751,12 @@ export default function Chat({ token, user, contact, addContact }) {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
-      const sessionKeyString = sessionKey.toString();
-      if (!sessionKeyString) {
-        throw new Error('Session key is null, cannot encrypt offer');
-      }
-      
       const encryptedOffer = encryptData(offer, sessionKey);
       socketRef.current.emit('secure_call_offer', {
         to: contactId,
         type: type,
         offer: encryptedOffer,
-        sessionId: sessionKeyString
+        sessionId: sessionKey.toString()
       });
       
       setInCall(true);
@@ -905,43 +768,14 @@ export default function Chat({ token, user, contact, addContact }) {
       
     } catch (error) {
       console.error('Secure call start error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        contact: contact?.id || contact?._id,
-        sessionKey: !!sessionKey
-      });
-      
-      let errorMessage = 'Güvenli arama başlatılamadı';
-      if (error.message.includes('Contact bilgisi')) {
-        errorMessage += ': Kişi bilgisi bulunamadı';
-      } else if (error.message.includes('Session key')) {
-        errorMessage += ': Güvenlik anahtarı oluşturulamadı';
-      } else if (error.message.includes('Güvenli bağlantı')) {
-        errorMessage += ': Güvenli bağlantı kurulamadı';
-      } else {
-        errorMessage += ': ' + error.message;
-      }
-      
-      alert(errorMessage);
+      alert('Güvenli arama başlatılamadı: ' + error.message);
     }
   };
   
   const acceptSecureCall = async () => {
     try {
       console.log('Accepting secure call');
-      
-      if (!callIncoming) {
-        throw new Error('Gelen arama bulunamadı');
-      }
-      
       const { from, type, offer, sessionId } = callIncoming;
-      
-      if (!from || !type || !offer || !sessionId) {
-        throw new Error('Eksik arama bilgileri');
-      }
-      
-      console.log('Call details:', { from, type, offer: !!offer, sessionId: !!sessionId });
       
       // 1. Session key'i al ve decrypt et
       const decryptedOffer = decryptData(offer, sessionId);
@@ -979,17 +813,11 @@ export default function Chat({ token, user, contact, addContact }) {
       pc.onicecandidate = (event) => {
         if (event.candidate && sessionId) {
           try {
-            const sessionIdString = sessionId.toString();
-            if (!sessionIdString) {
-              console.warn('Session ID is null, skipping ICE candidate');
-              return;
-            }
-            
             const encryptedCandidate = encryptData(event.candidate, sessionId);
             socketRef.current.emit('secure_ice_candidate', {
               to: from,
               candidate: encryptedCandidate,
-              sessionId: sessionIdString
+              sessionId: sessionId
             });
           } catch (error) {
             console.error('ICE candidate encryption failed:', error);
@@ -1008,16 +836,11 @@ export default function Chat({ token, user, contact, addContact }) {
       await pc.setLocalDescription(answer);
       
       // 8. Answer'ı şifrele ve gönder
-      const sessionIdString = sessionId.toString();
-      if (!sessionIdString) {
-        throw new Error('Session ID is null, cannot encrypt answer');
-      }
-      
       const encryptedAnswer = encryptData(answer, sessionId);
       socketRef.current.emit('secure_call_answer', {
         to: from,
         answer: encryptedAnswer,
-        sessionId: sessionIdString
+        sessionId: sessionId
       });
       
       setInCall(true);
@@ -1031,26 +854,7 @@ export default function Chat({ token, user, contact, addContact }) {
       
     } catch (error) {
       console.error('Secure call accept error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        callIncoming: !!callIncoming
-      });
-      
-      let errorMessage = 'Güvenli arama kabul edilemedi';
-      if (error.message.includes('Gelen arama')) {
-        errorMessage += ': Gelen arama bulunamadı';
-      } else if (error.message.includes('Eksik arama bilgileri')) {
-        errorMessage += ': Arama bilgileri eksik';
-      } else if (error.message.includes('Arama teklifi çözülemedi')) {
-        errorMessage += ': Arama teklifi çözülemedi';
-      } else if (error.message.includes('Session ID')) {
-        errorMessage += ': Güvenlik anahtarı hatası';
-      } else {
-        errorMessage += ': ' + error.message;
-      }
-      
-      alert(errorMessage);
+      alert('Güvenli arama kabul edilemedi: ' + error.message);
     }
   };
 
@@ -1089,14 +893,6 @@ export default function Chat({ token, user, contact, addContact }) {
               title="Görüntülü Arama"
             >
               📹
-            </button>
-            <button 
-              className="debug-btn"
-              onClick={debugEncryption}
-              title="Encryption Debug"
-              style={{ fontSize: '12px', padding: '4px 8px' }}
-            >
-              🐛
             </button>
           </div>
         )}
