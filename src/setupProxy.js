@@ -5,7 +5,7 @@ module.exports = function(app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: 'https://verxiel.onrender.com',
+      target: process.env.REACT_APP_API_URL || 'https://verxiel.com',
       changeOrigin: true,
       secure: false,
       logLevel: 'debug',
@@ -17,5 +17,5 @@ module.exports = function(app) {
       }
     })
   );
-  console.log('Proxy middleware configured for /api -> https://verxiel.onrender.com');
+  console.log('Proxy middleware configured for /api ->', process.env.REACT_APP_API_URL || 'https://verxiel.com');
 }; 

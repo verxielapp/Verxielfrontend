@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://verxiel.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
 
 export default function FriendRequests({ token, user, onBack }) {
   const [activeTab, setActiveTab] = useState('received'); // 'received' | 'sent'
@@ -14,7 +14,7 @@ export default function FriendRequests({ token, user, onBack }) {
   // Gelen istekleri yükle
   const loadReceivedRequests = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/friend-requests/received`, {
+      const response = await axios.get(`${API_BASE_URL}/api/friend-requests/received`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setReceivedRequests(Array.isArray(response.data) ? response.data : []);
@@ -27,7 +27,7 @@ export default function FriendRequests({ token, user, onBack }) {
   // Gönderilen istekleri yükle
   const loadSentRequests = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/friend-requests/sent`, {
+      const response = await axios.get(`${API_BASE_URL}/api/friend-requests/sent`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSentRequests(Array.isArray(response.data) ? response.data : []);
@@ -52,7 +52,7 @@ export default function FriendRequests({ token, user, onBack }) {
 
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/friend-requests/send`, {
+      await axios.post(`${API_BASE_URL}/api/friend-requests/send`, {
         receiverEmail: sendEmail,
         message: sendMessage
       }, {
@@ -79,7 +79,7 @@ export default function FriendRequests({ token, user, onBack }) {
   const respondToRequest = async (requestId, action) => {
     try {
       const endpoint = action === 'accept' ? 'accept' : 'reject';
-      await axios.post(`${API_BASE_URL}/friend-requests/${requestId}/${endpoint}`, {}, {
+      await axios.post(`${API_BASE_URL}/api/friend-requests/${requestId}/${endpoint}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -94,7 +94,7 @@ export default function FriendRequests({ token, user, onBack }) {
   // İsteği iptal et
   const cancelRequest = async (requestId) => {
     try {
-      await axios.post(`${API_BASE_URL}/friend-requests/${requestId}/cancel`, {}, {
+      await axios.post(`${API_BASE_URL}/api/friend-requests/${requestId}/cancel`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

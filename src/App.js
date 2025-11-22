@@ -30,7 +30,8 @@ const Icons = {
   logo: logoIcon
 };
 
-const SOCKET_URL = 'https://verxiel.onrender.com';
+const SOCKET_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
 
 function App() {
   const { t } = useLanguage();
@@ -79,7 +80,7 @@ function App() {
         return false;
       }
       
-      const res = await axios.get('https://verxiel.onrender.com/api/verify-token', {
+      const res = await axios.get(`${API_BASE_URL}/api/verify-token`, {
         headers: { Authorization: `Bearer ${tokenToVerify}` }
       });
       console.log('Token verification result:', res.data);
@@ -234,10 +235,10 @@ function App() {
     console.log('Token format check:', token.startsWith('eyJ') ? 'Valid JWT format' : 'Invalid JWT format');
     
     try {
-      console.log('Making request to:', 'https://verxiel.onrender.com/api/auth/contacts');
+      console.log('Making request to:', `${API_BASE_URL}/api/auth/contacts`);
       console.log('Request headers:', { Authorization: `Bearer ${token.substring(0, 20)}...` });
       
-      const res = await axios.get('https://verxiel.onrender.com/api/auth/contacts', {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/contacts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -344,7 +345,7 @@ function App() {
         return;
       }
       
-      const response = await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/add-contact-email`, { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -388,7 +389,7 @@ function App() {
   // Kişi sil
   // const deleteContact = async (contactId) => {
   //   try {
-  //     await axios.post('https://verxiel.onrender.com/api/auth/delete-contact', { contactId }, {
+  //     await axios.post(`${API_BASE_URL}/api/auth/delete-contact`, { contactId }, {
   //       headers: { Authorization: `Bearer ${token}` }
   //     });
   //     const updated = contacts.filter(c => (c.id || c._id) !== contactId);
@@ -416,7 +417,7 @@ function App() {
       }
       
       // Önce kişiyi eklemeye çalış
-      const response = await axios.post('https://verxiel.onrender.com/api/auth/add-contact-email', { email }, {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/add-contact-email`, { email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -476,7 +477,7 @@ function App() {
 
     try {
       if (authMode === 'login') {
-        const res = await axios.post('https://verxiel.onrender.com/api/auth/login', { email, password });
+        const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
         const { token: newToken, user: userData } = res.data;
         
         // LocalStorage'ı güvenli şekilde güncelle
@@ -494,7 +495,7 @@ function App() {
         setToken(newToken);
         setUser(userData);
       } else if (authMode === 'register') {
-        const res = await axios.post('https://verxiel.onrender.com/api/auth/register', { 
+        const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { 
           email, 
           password, 
           displayName, 
@@ -524,7 +525,7 @@ function App() {
     const code = formData.get('code');
 
     try {
-      const res = await axios.post('https://verxiel.onrender.com/api/auth/verify-email', { email, code });
+      const res = await axios.post(`${API_BASE_URL}/api/auth/verify-email`, { email, code });
       
       if (res.data.verified) {
         alert('Email başarıyla doğrulandı! Şimdi giriş yapabilirsiniz.');
@@ -541,7 +542,7 @@ function App() {
         alert('Doğrulama kodunun süresi dolmuş! Yeni kod talep edin.');
         // Yeni kod gönder
         try {
-          await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
+          await axios.post(`${API_BASE_URL}/api/auth/resend-code`, { email });
           alert('Yeni kod gönderildi! Email adresinizi kontrol edin.');
         } catch (resendErr) {
           alert('Yeni kod gönderilemedi!');
@@ -561,7 +562,7 @@ function App() {
     }
 
     try {
-      await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
+      await axios.post(`${API_BASE_URL}/api/auth/resend-code`, { email });
       alert('Doğrulama kodu tekrar gönderildi!');
     } catch (err) {
       alert(err.response?.data?.message || 'Kod gönderilemedi!');
@@ -576,7 +577,7 @@ function App() {
     }
     
     try {
-      await axios.post('https://verxiel.onrender.com/api/auth/resend-code', { email });
+      await axios.post(`${API_BASE_URL}/api/auth/resend-code`, { email });
       setVerificationEmail(email);
       setAuthMode('verify');
       alert('Doğrulama kodu gönderildi! Email adresinizi kontrol edin.');

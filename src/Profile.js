@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
+
 export default function Profile({ token, onContactsChange, addContact, deleteContact }) {
   const [profile, setProfile] = useState(null);
   const [displayName, setDisplayName] = useState('');
@@ -18,7 +20,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
     
     console.log('Profile: Loading with token:', token.substring(0, 20) + '...');
     
-    axios.get('https://verxiel.onrender.com/api/auth/me', {
+    axios.get(`${API_BASE_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       console.log('Profile loaded successfully:', res.data);
@@ -33,7 +35,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
       setProfile(null);
     });
     // Kişi listesini çek
-    axios.get('https://verxiel.onrender.com/api/auth/contacts', {
+    axios.get(`${API_BASE_URL}/api/auth/contacts`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       console.log('Profile contacts loaded successfully:', res.data);
@@ -51,7 +53,7 @@ export default function Profile({ token, onContactsChange, addContact, deleteCon
   const update = async e => {
     e.preventDefault();
     try {
-      const res = await axios.put('https://verxiel.onrender.com/api/auth/me', { displayName, avatarUrl }, {
+      const res = await axios.put(`${API_BASE_URL}/api/auth/me`, { displayName, avatarUrl }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProfile(res.data);

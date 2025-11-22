@@ -4,7 +4,8 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { useLanguage } from './contexts/LanguageContext';
 
-const SOCKET_URL = 'https://verxiel.onrender.com';
+const SOCKET_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
 
 export default function Chat({ token, user, contact, addContact }) {
   const { t } = useLanguage();
@@ -115,7 +116,7 @@ export default function Chat({ token, user, contact, addContact }) {
     console.log('Chat: Loading messages for contact:', contact);
     
     // Mesajları yükle
-    axios.get('https://verxiel.onrender.com/api/messages', {
+    axios.get(`${API_BASE_URL}/api/messages`, {
       params: { userId: user.id, to: contact._id },
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {

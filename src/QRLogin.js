@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import './QRLogin.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://verxiel.com';
+
 const QRLogin = ({ onLoginSuccess, onBackToLogin }) => {
     const [qrCode, setQrCode] = useState('');
     const [status, setStatus] = useState('Generating QR code...');
@@ -13,7 +15,7 @@ const QRLogin = ({ onLoginSuccess, onBackToLogin }) => {
     const startQRCheck = useCallback((qrCodeData) => {
         intervalRef.current = setInterval(async () => {
             try {
-                const response = await axios.post('https://verxiel.onrender.com/api/qr/qr-login', {
+                const response = await axios.post(`${API_BASE_URL}/api/qr/qr-login`, {
                     qrCode: qrCodeData
                 });
 
@@ -56,7 +58,7 @@ const QRLogin = ({ onLoginSuccess, onBackToLogin }) => {
             setError('');
             setStatus('Generating QR code...');
 
-            const response = await axios.post('https://verxiel.onrender.com/api/qr/generate-qr');
+            const response = await axios.post(`${API_BASE_URL}/api/qr/generate-qr`);
             
             if (response.data.success) {
                 setQrCode(response.data.qrCode);
