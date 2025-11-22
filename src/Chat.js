@@ -162,8 +162,8 @@ export default function Chat({ token, user, contact, addContact }) {
     // Socket event listener'ları
     socketRef.current.on('message', msg => {
       console.log('Received message:', msg);
-          const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
-    const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
+      const myId = (user.id || user._id)?.toString?.() || (user.id || user._id);
+      const contactId = (contact.id || contact._id)?.toString?.() || (contact.id || contact._id);
       const fromId = (msg.fromId || msg.from?.id || msg.from?._id)?.toString?.() || msg.from;
       const toId = (msg.toId || msg.to?.id || msg.to?._id)?.toString?.() || msg.to;
       
@@ -171,7 +171,27 @@ export default function Chat({ token, user, contact, addContact }) {
       
       if ((fromId === myId && toId === contactId) || (fromId === contactId && toId === myId)) {
         console.log('Adding message to chat:', msg);
-        setMessages(prev => [...prev, msg]);
+        // Duplicate kontrolü - aynı mesajı tekrar ekleme
+        setMessages(prev => {
+          const msgId = msg.id || msg._id || `${msg.timestamp}_${fromId}_${toId}`;
+          const exists = prev.some(m => 
+            (m.id || m._id) === msgId || 
+            (m.timestamp === msg.timestamp && m.fromId === msg.fromId && m.toId === msg.toId)
+          );
+          if (exists) {
+            console.log('Message already exists, skipping:', msgId);
+            return prev;
+          }
+          return [...prev, msg];
+        });
+        
+        // Scroll to bottom
+        setTimeout(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+          }
+        }, 100);
+        
         // Bildirim: Sadece karşıdan gelen mesajlar için
         if (fromId === contactId && fromId !== myId) {
           // Bildirim izni yoksa iste

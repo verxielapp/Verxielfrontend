@@ -23,6 +23,15 @@ if (!fs.existsSync(buildPath)) {
 
 app.use(express.static(buildPath));
 
+// Sitemap ve robots.txt için özel route'lar
+app.get('/sitemap.xml', (_req, res) => {
+  res.sendFile(path.join(buildPath, 'sitemap.xml'));
+});
+
+app.get('/robots.txt', (_req, res) => {
+  res.sendFile(path.join(buildPath, 'robots.txt'));
+});
+
 app.get('*', (_req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
